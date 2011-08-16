@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name="generator" content=
+  "HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 15.3.6), see www.w3.org" />
+
+  <title>Lambda Calculator</title>
+  <script type="text/javascript" src="lambda.js"></script>
+<script type="text/javascript">
+
+<!--
+
+var out= (function() {
+  var log= "";
+  return function(aString) {
+    log += aString + "\r\n";
+    var transcript= document.getElementById("transcript");
+    transcript.firstChild.nodeValue= log;
+  }
+})();
+-->
+</script>
+  <style type="text/css">
+/*<![CDATA[*/
+  body {
+    margin: 1em 3em 1em 3em;
+  }
+  h2 {
+    font-family: Helvetica;
+    border-color:#ccc; border-style:solid; border-width:0 0 1px;
+  }
+
+  h1, h3, h4, b{
+    font-family: Helvetica;
+  }
+
+  p {
+    margin-left: 1em;
+  }
+
+  /*]]>*/
+  </style>
+</head>
+
+<body onload="runtest();">
+  <h1>Lambda Calculator</h1>
+
+<form id="query" action="" onsubmit="return printIt()">
+
+</form>
+
+<pre id="transcript"> </pre>
+
+</body>
+</html>
