@@ -1,4 +1,4 @@
-// lambda.js : A lambda calculator
+// lambda.js : A lambda calculator -*- coding: utf-8 -*-
 //
 // Copyright (c) 2011 Takashi Yamamiya <tak@metatoys.org>
 //
@@ -23,16 +23,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+// ---------- Term Structure ----------
+// ["var", idx] -- idx is a Bruijn index (bound) or string (unbound)
+// ["abs", string, term] -- string is a hint of the variable name
+// ["app", term, term]
+
 // ---------- Printer ----------
 
-function show(node) {
+function pickFreshName(env, name) {
+  var trunk = /^[a-z]+/.exec(name);
+  var found = env.filter(
+    function(each) {
+      var eachTrunk = /^[a-z]+/.exec(each)[0];
+      return trunk == eachTrunk; }).length;
+  var newName = found == 0 ? name : name + found;
+  return [[newName].concat(env), newName];
+}
+
+function show(node, env) {
   switch (node[0]) {
   case "var":
+    if (typeof node[1] == "number") return env[node[1]];
     return node[1];
   case "abs":
-    return "(λ" + show(node[1]) + "." + show(node[2]) + ")";
+    var pair = pickFreshName(env, node[1]);
+    return "(λ" + pair[1] + "." + show(node[2], pair[0]) + ")";
   case "app":
-    return "(" + show(node[1]) + " " + show(node[2]) + ")";
+    return "(" + show(node[1], env) + " " + show(node[2], env) + ")";
   }
   throw	"unknown tag:" + node[0];
 }
@@ -46,28 +63,39 @@ function show(node) {
 //           or [false] if failed
 
 // term = app
-function parseTerm(source) {
-  return parseApp(source);
+function parseTerm(source, env) {
+  return parseApp(source, env);
 }
 
 // prim = paren | abs | var
-function parsePrim(source) {
+function parsePrim(source, env) {
   return orElse(parseParen,
          orElse(parseAbs,
-                parseVar))(source);
+                parseVar))(source, env);
 }
 
-// var = [a-z]
-function parseVar(source) {
-  var match = parseRegExp(/^([a-z])\s*/)(source);
+// name = [a-z]
+function parseName(source, env) {
+  var match = parseRegExp(/^([a-z])\s*/)(source, env);
   if (!match[0]) return [false];
-  return [true, ["var", match[1]], match[2]];
+  return [true, match[1], match[2]];
+}
+
+// var = name
+function parseVar(source, env) {
+  var match = parseName(source, env);
+  if (!match[0]) return [false];
+  var idx = env.indexOf(match[1]);
+  if (idx == -1) {
+    idx = match[1];
+  }
+  return [true, ["var", idx], match[2]];
 }
 
 // app = prim prim*
-function parseApp(source) {
+function parseApp(source, env) {
   var result = seq(parsePrim,
-               many(parsePrim))(source);
+                   many(parsePrim))(source, env);
   if (!result[0]) return [false];
   var newTree= parseAppLeft(result[1][0], result[1][1]);
   return [true, newTree, result[2]];
@@ -79,21 +107,23 @@ function parseAppLeft(first, rest) {
   return parseAppLeft(["app", first, second], rest.slice(1));
 }
 
-// abs = "\|L|λ|" var "." term
-function parseAbs(source) {
+// abs = "\|L|λ|" name "." term
+function parseAbs(source, env) {
   var result = seq(parseRegExp(/^([\\Lλ])\s*/),
-               seq(parseVar,
-               seq(parseRegExp(/^(\.)\s*/),
-                   parseTerm)))(source);
+                   parseName)(source, env);
   if (!result[0]) return [false];
-  return [true, ["abs", result[1][1][0], result[1][1][1][1]], result[2]];
+  var newEnv = [result[1][1]].concat(env);
+  var result2 = seq(parseRegExp(/^(\.)\s*/),
+                    parseTerm)(result[2], newEnv);
+  if (!result2[0]) return [false];
+  return [true, ["abs", result[1][1], result2[1][1]], result2[2]];
 }
 
 // paren = ( term )
-function parseParen(source) {
+function parseParen(source, env) {
   var result= seq(parseRegExp(/^\(\s*/),
               seq(parseTerm,
-                  parseRegExp(/^\)\s*/)))(source);
+                  parseRegExp(/^\)\s*/)))(source, env);
   if (!result[0]) return [false];
   return [true, result[1][1][0], result[2]];
 }
@@ -101,7 +131,7 @@ function parseParen(source) {
 // Return a parser which accept with the regular expression.
 // The parser returns [true, first matched element, rest of the input]
 function parseRegExp(regExp) {
-  return function(source) {
+  return function(source, env) {
     var match= regExp.exec(source);
     if (match) return [true, match[1], source.slice(match[0].length)];
     return [false];
@@ -112,10 +142,10 @@ function parseRegExp(regExp) {
 
 // Return a list of values using parser until it fails.
 function many(parser) {
-  return function(source) {
+  return function(source, env) {
     var result= [];
     while (true) {
-      var each= parser(source);
+      var each= parser(source, env);
       if (!each[0]) return [true, result, source];
       result.push(each[1]);
       source= each[2];
@@ -125,19 +155,19 @@ function many(parser) {
 
 // If parser1 fails then parse2.
 function orElse(parser1, parser2) {
-  return function(source) {
-    var first= parser1(source);
+  return function(source, env) {
+    var first= parser1(source, env);
     if (first[0]) return first;
-    return parser2(source);
+    return parser2(source, env);
   };
 }
 
 // Do parse1 and parse2 and return list of results.
 function seq(parser1, parser2) {
-  return function(source) {
-    var first= parser1(source);
+  return function(source, env) {
+    var first= parser1(source, env);
     if (!first[0]) return [false];
-    var second= parser2(first[2]);
+    var second= parser2(first[2], env);
     if (!second[0]) return [false];
     return [true, [first[1], second[1]], second[2]];
   };
@@ -166,41 +196,44 @@ function testEq(a, b) {
 
 function runtest() {
   out("-- parser test --");
-  testEq(parseVar("a!"), [true, ["var", "a"], "!"]);
-  testEq(parsePrim("a!"), [true, ["var", "a"], "!"]);
-  testEq(many(parseVar)("aaa!"), [true, [["var", "a"], ["var", "a"], ["var", "a"]] , "!"]);
+  testEq(parseVar("a!", ["a"]), [true, ["var", 0], "!"]);
+  testEq(parseVar("b!", ["a"]), [true, ["var", "b"], "!"]);
+
+  testEq(parsePrim("a!", ["a"]), [true, ["var", 0], "!"]);
+  testEq(many(parseVar)("aaa!", ["a"]), [true, [["var", 0], ["var", 0], ["var", 0]] , "!"]);
 
   testEq(parseAppLeft(1, [2, 3, 4]), ["app", ["app", ["app", 1, 2], 3], 4]);
 
-  testEq(parseApp("x y!"), [true, ["app", ["var", "x"],
-                                          ["var", "y"]], "!"]);
+  testEq(parseApp("x y!", ["x", "y"]), [true, ["app", ["var", 0],
+                                                      ["var", 1]], "!"]);
 
-  testEq(parseAbs("\\x. y!"), [true, ["abs", ["var", "x"],
-                                             ["var", "y"]], "!"]);
+  testEq(parseAbs("\\x. y!", ["y"]), [true, ["abs", "x", ["var", 1]], "!"]);
 
   testEq(parseAbs("\\x.\\y. y x!"),
-         [true, ["abs", ["var", "x"],
-                        ["abs", ["var", "y"],
-                                ["app", ["var", "y"], ["var", "x"]]]], "!"]);
+         [true, ["abs", "x", ["abs", "y", ["app", ["var", 0], ["var", 1]]]], "!"]);
 
-  testEq(parseParen("(a)!"), [true, ["var", "a"], "!"]);
+  testEq(parseParen("(a)!", ["a"]), [true, ["var", 0], "!"]);
 
-  testEq(parseApp("a (b c)!"),
-         [true, ["app", ["var", "a"], ["app", ["var", "b"], ["var", "c"]]], "!"]);
+  testEq(parseApp("a (b c)!", ["a", "b"]),
+         [true, ["app", ["var", 0], ["app", ["var", 1], ["var", "c"]]], "!"]);
 
   out("-- output test --");
 
-  testEq(show(["var", "a"]), "a");
-  testEq(show(["abs", ["var", "x"],
-                      ["var", "y"]]),
+  testEq(pickFreshName([], "a"), [["a"], "a"]);
+  testEq(pickFreshName(["a1", "a"], "a"), [["a2", "a1", "a"], "a2"]);
+
+  testEq(show(["var", 1], ["a", "b"]), "b");
+  testEq(show(["var", "c"], ["a", "b"]), "c");
+
+  testEq(show(["abs", "x", ["var", 1]], ["y"]),
          "(λx.y)");
 
-  testEq(show(["app", ["var", "a"], ["app", ["var", "b"], ["var", "c"]]]), "(a (b c))");
+  testEq(show(["app", ["var", 0], ["app", ["var", 1], ["var", 2]]], ["a", "b", "c"]), "(a (b c))");
 
-  testEq(show(parseTerm("λf.λx.x")[1]), "(λf.(λx.x))");
-  testEq(show(parseTerm("λf.λx.f (f (f x))")[1]), "(λf.(λx.(f (f (f x)))))");
+  testEq(show(parseTerm("λf.λx.x")[1], []), "(λf.(λx.x))");
+  testEq(show(parseTerm("λf.λx.f (f (f x))")[1], []), "(λf.(λx.(f (f (f x)))))");
 
-  testEq(show(parseTerm("λg.(λx.g (x x)) (λx.g (x x))")[1]),
+  testEq(show(parseTerm("λg.(λx.g (x x)) (λx.g (x x))")[1], []),
          "(λg.((λx.(g (x x))) (λx.(g (x x)))))");
 
 }

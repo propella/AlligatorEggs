@@ -1,4 +1,4 @@
--*- outline -*-
+-*- mode: outline; coding: utf-8 -*-
 
 * about
 
@@ -8,13 +8,13 @@ Lambda Calculator
 
 ** peg syntax
 
-var = [a-z]
-abs = "λ" var "." term
+name = [a-z]
+var = name
+abs = "λ" name "." term
 paren = ( term )
 prim = paren | abs | var
 app = prim prim*
 term = app
-
 
 file://localhost/Users/takashi/src/lambda/lambda.html
 http://www.cis.upenn.edu/~bcpierce/tapl/checkers/untyped/
@@ -28,7 +28,5 @@ todo: parser
 todo: evaluator
 todo: 
 
-
 λg.λx.(g xx) λx.g xx
 λg.(λx.g xx) λx.g xx
-
