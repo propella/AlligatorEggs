@@ -24,8 +24,8 @@ true = \x.\y.x
 false = \x.\y.y
 if-then-else = \a.\b.\c.((a)b)c
 
-todo: parser
 todo: evaluator
+todo: v8
 todo: 
 
 λg.λx.(g xx) λx.g xx
