@@ -24,15 +24,19 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 // ---------- Term Structure ----------
-// ["var", idx] -- idx is a Bruijn index (bound) or string (unbound)
-// ["abs", string, term] -- string is a hint of the variable name
-// ["app", term, term]
+// [Var, idx] -- idx is a Bruijn index (bound) or string (unbound)
+// [Abs, string, term] -- string is a hint of the variable name
+// [App, term, term]
+
+var Var = "var";
+var Abs = "abs";
+var App = "app";
 
 // ---------- Evaluator ----------
 
 function termEval(term) {
 //  out(show(term, []));
-  while (term[0] == "app") {
+  while (term[0] == App) {
     var func = termEval(term[1]);
     var arg = termEval(term[2]);
     term = termSbstTop(func, arg);
@@ -42,7 +46,7 @@ function termEval(term) {
 }
 
 function termSbstTop(func, arg) {
-  if (func[0] != "abs") return ["app", func, arg];
+  if (func[0] != Abs) return [App, func, arg];
   var term = func[2];
   return termShift(-1, 0, termSbst(0, termShift(1, 0, arg), term));
 }
@@ -56,15 +60,15 @@ function termSbstTop(func, arg) {
 
 function termShift(depth, cut, term) {
   switch (term[0]) {
-  case "var":
+  case Var:
     var index = term[1];
     if (typeof index == "string") return term;       // constant
-    if (index >= cut) return ["var", index + depth]; // unbound
+    if (index >= cut) return [Var, index + depth]; // unbound
     else return term;                                // bound
-  case "abs":
-    return ["abs", term[1], termShift(depth, cut + 1, term[2])];
-  case "app":
-    return ["app", termShift(depth, cut, term[1]), termShift(depth, cut, term[2])];
+  case Abs:
+    return [Abs, term[1], termShift(depth, cut + 1, term[2])];
+  case App:
+    return [App, termShift(depth, cut, term[1]), termShift(depth, cut, term[2])];
   }
   throw	"unknown tag:" + term[0];
 }
@@ -78,15 +82,15 @@ function termShift(depth, cut, term) {
 
 function termSbst(j, arg, term) {
   switch (term[0]) {
-  case "var":
+  case Var:
     var index = term[1];
     if (typeof index == "string") return term; // constant
     if (index == j) return arg;                // matched
     else return term;                          // unmatched
-  case "abs":
-    return ["abs", term[1], termSbst(j + 1, termShift(1, 0, arg), term[2])];
-  case "app":
-    return ["app", termSbst(j, arg, term[1]), termSbst(j, arg, term[2])];
+  case Abs:
+    return [Abs, term[1], termSbst(j + 1, termShift(1, 0, arg), term[2])];
+  case App:
+    return [App, termSbst(j, arg, term[1]), termSbst(j, arg, term[2])];
   }
   throw	"unknown tag:" + term[0];
 }
@@ -105,14 +109,14 @@ function pickFreshName(ctx, name) {
 
 function show(term, ctx) {
   switch (term[0]) {
-  case "var":
+  case Var:
     if (typeof term[1] == "number" && term[1] < ctx.length) return ctx[term[1]];
     if (typeof term[1] == "number") return "?" + term[1];
     return term[1];
-  case "abs":
+  case Abs:
     var pair = pickFreshName(ctx, term[1]);
     return "(λ" + pair[1] + "." + show(term[2], pair[0]) + ")";
-  case "app":
+  case App:
     return "(" + show(term[1], ctx) + " " + show(term[2], ctx) + ")";
   }
   throw	"unknown tag:" + term[0];
@@ -157,7 +161,7 @@ function parseVar(source, ctx) {
   if (idx == -1) {
     idx = match[1];
   }
-  return [true, ["var", idx], match[2]];
+  return [true, [Var, idx], match[2]];
 }
 
 // app = prim prim*
@@ -172,7 +176,7 @@ function parseApp(source, ctx) {
 function parseAppLeft(first, rest) {
   if (rest.length == 0) return first;
   var second= rest[0];
-  return parseAppLeft(["app", first, second], rest.slice(1));
+  return parseAppLeft([App, first, second], rest.slice(1));
 }
 
 // abs = "\|L|λ|" name "." term
@@ -184,7 +188,7 @@ function parseAbs(source, ctx) {
   var result2 = seq(parseRegExp(/^(\.)\s*/),
                     parseTerm)(result[2], newCtx);
   if (!result2[0]) return [false];
-  return [true, ["abs", result[1][1], result2[1][1]], result2[2]];
+  return [true, [Abs, result[1][1], result2[1][1]], result2[2]];
 }
 
 // paren = ( term )
@@ -263,71 +267,71 @@ function testEq(a, b) {
 
 function runtest() {
   out("-- shift test --");
-  testEq(termShift(1, 1, ["var", 1]), ["var", 2]);
-  testEq(termShift(1, 2, ["var", 1]), ["var", 1]);
-  testEq(termShift(1, 0, ["abs", "x", ["var", 1]]),
-                         ["abs", "x", ["var", 2]]);
-  testEq(termShift(1, 1, ["abs", "x", ["var", 1]]),
-                         ["abs", "x", ["var", 1]]);
-  testEq(termShift(1, 1, ["app", ["var", 0], ["var", 1]]),
-                         ["app", ["var", 0], ["var", 2]]);
-  testEq(termShift(1, 1, ["abs", "x", ["app", ["var", 1], ["var", 2]]]),
-                         ["abs", "x", ["app", ["var", 1], ["var", 3]]]);
+  testEq(termShift(1, 1, [Var, 1]), [Var, 2]);
+  testEq(termShift(1, 2, [Var, 1]), [Var, 1]);
+  testEq(termShift(1, 0, [Abs, "x", [Var, 1]]),
+                         [Abs, "x", [Var, 2]]);
+  testEq(termShift(1, 1, [Abs, "x", [Var, 1]]),
+                         [Abs, "x", [Var, 1]]);
+  testEq(termShift(1, 1, [App, [Var, 0], [Var, 1]]),
+                         [App, [Var, 0], [Var, 2]]);
+  testEq(termShift(1, 1, [Abs, "x", [App, [Var, 1], [Var, 2]]]),
+                         [Abs, "x", [App, [Var, 1], [Var, 3]]]);
 
   out("-- substitution test --");
-  testEq(termSbst(0, ["var", 1], ["var", 0]), ["var", 1]);
-  testEq(termSbst(2, ["var", "a"], ["var", 2]), ["var", "a"]);
+  testEq(termSbst(0, [Var, 1], [Var, 0]), [Var, 1]);
+  testEq(termSbst(2, [Var, "a"], [Var, 2]), [Var, "a"]);
 
-  testEq(termSbst(0, ["var", "a"], ["abs", "x", ["var", 1]]),
-                                   ["abs", "x", ["var", "a"]]);
+  testEq(termSbst(0, [Var, "a"], [Abs, "x", [Var, 1]]),
+                                   [Abs, "x", [Var, "a"]]);
 
-  testEq(termSbst(1, ["var", "a"], ["app", ["var", 0], ["var", 1]]),
-                     ["app", ["var", 0], ["var", "a"]]);
+  testEq(termSbst(1, [Var, "a"], [App, [Var, 0], [Var, 1]]),
+                     [App, [Var, 0], [Var, "a"]]);
 
   out("-- eval test --");
-  testEq(termEval(["var", 1]), ["var", 1]);
-  testEq(termEval(["abs", "x", ["var", 1]]), ["abs", "x", ["var", 1]]);
+  testEq(termEval([Var, 1]), [Var, 1]);
+  testEq(termEval([Abs, "x", [Var, 1]]), [Abs, "x", [Var, 1]]);
 
-  testEq(termEval(["app", ["abs", "x", ["var", 0]], ["var", "y"]]),
-                  ["var", "y"]);
+  testEq(termEval([App, [Abs, "x", [Var, 0]], [Var, "y"]]),
+                  [Var, "y"]);
 
-  testEq(termEval(parse("(λx.λy.x) a b")), ["var", "a"]);
-  testEq(termEval(parse("(λx.λy.y) a b")), ["var", "b"]);
+  testEq(termEval(parse("(λx.λy.x) a b")), [Var, "a"]);
+  testEq(termEval(parse("(λx.λy.y) a b")), [Var, "b"]);
 
   out("-- parser test --");
-  testEq(parseVar("a!", ["a"]), [true, ["var", 0], "!"]);
-  testEq(parseVar("b!", ["a"]), [true, ["var", "b"], "!"]);
+  testEq(parseVar("a!", ["a"]), [true, [Var, 0], "!"]);
+  testEq(parseVar("b!", ["a"]), [true, [Var, "b"], "!"]);
 
-  testEq(parsePrim("a!", ["a"]), [true, ["var", 0], "!"]);
-  testEq(many(parseVar)("aaa!", ["a"]), [true, [["var", 0], ["var", 0], ["var", 0]] , "!"]);
+  testEq(parsePrim("a!", ["a"]), [true, [Var, 0], "!"]);
+  testEq(many(parseVar)("aaa!", ["a"]), [true, [[Var, 0], [Var, 0], [Var, 0]] , "!"]);
 
-  testEq(parseAppLeft(1, [2, 3, 4]), ["app", ["app", ["app", 1, 2], 3], 4]);
+  testEq(parseAppLeft(1, [2, 3, 4]), [App, [App, [App, 1, 2], 3], 4]);
 
-  testEq(parseApp("x y!", ["x", "y"]), [true, ["app", ["var", 0],
-                                                      ["var", 1]], "!"]);
+  testEq(parseApp("x y!", ["x", "y"]), [true, [App, [Var, 0],
+                                                      [Var, 1]], "!"]);
 
-  testEq(parseAbs("\\x. y!", ["y"]), [true, ["abs", "x", ["var", 1]], "!"]);
+  testEq(parseAbs("\\x. y!", ["y"]), [true, [Abs, "x", [Var, 1]], "!"]);
 
   testEq(parseAbs("\\x.\\y. y x!"),
-         [true, ["abs", "x", ["abs", "y", ["app", ["var", 0], ["var", 1]]]], "!"]);
+         [true, [Abs, "x", [Abs, "y", [App, [Var, 0], [Var, 1]]]], "!"]);
 
-  testEq(parseParen("(a)!", ["a"]), [true, ["var", 0], "!"]);
+  testEq(parseParen("(a)!", ["a"]), [true, [Var, 0], "!"]);
 
   testEq(parseApp("a (b c)!", ["a", "b"]),
-         [true, ["app", ["var", 0], ["app", ["var", 1], ["var", "c"]]], "!"]);
+         [true, [App, [Var, 0], [App, [Var, 1], [Var, "c"]]], "!"]);
 
   out("-- output test --");
 
   testEq(pickFreshName([], "a"), [["a"], "a"]);
   testEq(pickFreshName(["a1", "a"], "a"), [["a2", "a1", "a"], "a2"]);
 
-  testEq(show(["var", 1], ["a", "b"]), "b");
-  testEq(show(["var", "c"], ["a", "b"]), "c");
+  testEq(show([Var, 1], ["a", "b"]), "b");
+  testEq(show([Var, "c"], ["a", "b"]), "c");
 
-  testEq(show(["abs", "x", ["var", 1]], ["y"]),
+  testEq(show([Abs, "x", [Var, 1]], ["y"]),
          "(λx.y)");
 
-  testEq(show(["app", ["var", 0], ["app", ["var", 1], ["var", 2]]], ["a", "b", "c"]), "(a (b c))");
+  testEq(show([App, [Var, 0], [App, [Var, 1], [Var, 2]]], ["a", "b", "c"]), "(a (b c))");
 
   testEq(show(parseTerm("λf.λx.x")[1], []), "(λf.(λx.x))");
   testEq(show(parseTerm("λf.λx.f (f (f x))")[1], []), "(λf.(λx.(f (f (f x)))))");

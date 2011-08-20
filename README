@@ -24,9 +24,7 @@ true = \x.\y.x
 false = \x.\y.y
 if-then-else = \a.\b.\c.((a)b)c
 
-todo: evaluator
-todo: v8
-todo: 
+todo: show intermediate process
 
 λg.λx.(g xx) λx.g xx
 λg.(λx.g xx) λx.g xx
