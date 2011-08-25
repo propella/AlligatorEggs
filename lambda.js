@@ -324,6 +324,8 @@ function runtest() {
 
   testEq(termEval(parse("λg.(λx.g (x x)) (λx.g (x x))")), null);
 
+  testEq(termEval(parse("(λx.x x) (λx.x x)")), null);
+
   var two = parse("λf.λx.f (f x)");
   var three = parse("λf.λx.f (f (f x))");
   var five = parse("λf.λx.f (f (f (f (f x))))");
