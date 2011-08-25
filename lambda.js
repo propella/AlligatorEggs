@@ -35,14 +35,29 @@ var App = "app";
 // ---------- Evaluator ----------
 
 function termEval(term) {
-//  out(show(term, []));
-  while (term[0] == App) {
-    var func = termEval(term[1]);
-    var arg = termEval(term[2]);
-    term = termSbstTop(func, arg);
-//    out(show(term, []));
+  out(show(term, []));
+  for (var i = 0; i < 30; i++) {
+    var newTerm = eval1(term);
+    if (eq(newTerm, term)) return newTerm;
+    term = newTerm;
+    out(show(term, []));
   }
-  return term;
+  out("...");
+  return null;
+}
+
+function eval1(term) {
+  switch (term[0]) {
+  case Var:
+    return term;
+  case Abs:
+    return [Abs, term[1], eval1(term[2])];
+  case App:
+    if (term[1][0] == App) return [App, eval1(term[1]), term[2]];
+    if (term[2][0] == App) return [App, term[1], eval1(term[2])];
+    return termSbstTop(term[1], term[2]);
+  }
+  throw "unknown tag:" + term[0];
 }
 
 function termSbstTop(func, arg) {
@@ -297,6 +312,19 @@ function runtest() {
 
   testEq(termEval(parse("(λx.λy.x) a b")), [Var, "a"]);
   testEq(termEval(parse("(λx.λy.y) a b")), [Var, "b"]);
+  testEq(termEval(parse("(λx.λy. x y) (λz. z)")), parse("(λy.y)"));
+
+  testEq(termEval(parse("λg.(λx.g (x x)) (λx.g (x x))")), null);
+
+  var two = parse("λf.λx.f (f x)");
+  var three = parse("λf.λx.f (f (f x))");
+  var five = parse("λf.λx.f (f (f (f (f (f x)))))");
+  var plus = parse("λm. λn. λf. λx. m f (n f x)");
+  var succ = parse("λn. λf. λx. f (n f x)");
+
+  testEq(termEval([App, succ, two]), three);
+
+//  testEq(termEval([App, [App, plus, two], three]), five);
 
   out("-- parser test --");
   testEq(parseVar("a!", ["a"]), [true, [Var, 0], "!"]);

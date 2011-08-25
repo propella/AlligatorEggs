@@ -4,6 +4,10 @@
 
 Lambda Calculator
 
+* test in console
+
+node lambda.js
+
 * note
 
 ** peg syntax
@@ -24,7 +28,8 @@ true = \x.\y.x
 false = \x.\y.y
 if-then-else = \a.\b.\c.((a)b)c
 
-todo: show intermediate process
+todo: URL input
+todo: 2 + 3
 
 λg.λx.(g xx) λx.g xx
 λg.(λx.g xx) λx.g xx
