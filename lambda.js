@@ -38,7 +38,7 @@ function termEval(term) {
   out(show(term, []));
   for (var i = 0; i < 30; i++) {
     var newTerm = eval1(term);
-    if (eq(newTerm, term)) return newTerm;
+    if (newTerm == null) return term;
     term = newTerm;
     out(show(term, []));
   }
@@ -46,22 +46,30 @@ function termEval(term) {
   return null;
 }
 
+
+// Eval one step.
+// Return null if no further steps are present.
 function eval1(term) {
   switch (term[0]) {
   case Var:
-    return term;
+    return null;
   case Abs:
-    return [Abs, term[1], eval1(term[2])];
+    var body = eval1(term[2]);
+    if (body == null) return null;
+    else return [Abs, term[1], body];
   case App:
-    if (term[1][0] == App) return [App, eval1(term[1]), term[2]];
-    if (term[2][0] == App) return [App, term[1], eval1(term[2])];
+    var func = eval1(term[1]);
+    if (func != null) return [App, func, term[2]];
+    var arg = eval1(term[2]);
+    if (arg != null) return [App, term[1], arg];
+
     return termSbstTop(term[1], term[2]);
   }
   throw "unknown tag:" + term[0];
 }
 
 function termSbstTop(func, arg) {
-  if (func[0] != Abs) return [App, func, arg];
+  if (func[0] != Abs) return null;
   var term = func[2];
   return termShift(-1, 0, termSbst(0, termShift(1, 0, arg), term));
 }
@@ -318,13 +326,13 @@ function runtest() {
 
   var two = parse("λf.λx.f (f x)");
   var three = parse("λf.λx.f (f (f x))");
-  var five = parse("λf.λx.f (f (f (f (f (f x)))))");
+  var five = parse("λf.λx.f (f (f (f (f x))))");
   var plus = parse("λm. λn. λf. λx. m f (n f x)");
   var succ = parse("λn. λf. λx. f (n f x)");
 
   testEq(termEval([App, succ, two]), three);
 
-//  testEq(termEval([App, [App, plus, two], three]), five);
+  testEq(termEval([App, [App, plus, two], three]), five);
 
   out("-- parser test --");
   testEq(parseVar("a!", ["a"]), [true, [Var, 0], "!"]);

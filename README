@@ -29,7 +29,10 @@ false = \x.\y.y
 if-then-else = \a.\b.\c.((a)b)c
 
 todo: URL input
-todo: 2 + 3
 
 λg.λx.(g xx) λx.g xx
 λg.(λx.g xx) λx.g xx
+
+* references
+
+http://code.google.com/p/visual-lambda/
