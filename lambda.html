@@ -10,17 +10,35 @@
   <title>Lambda Calculator</title>
   <script type="text/javascript" src="lambda.js"></script>
 <script type="text/javascript">
-
 <!--
-
-var out= (function() {
-  var log= "";
+var out = (function() {
+  var log = "";
   return function(aString) {
     log += aString + "\r\n";
-    var transcript= document.getElementById("transcript");
+    var transcript = document.getElementById("transcript");
     transcript.firstChild.nodeValue= log;
   }
 })();
+
+function printIt() {
+  var expression = document.getElementById('exp').value;
+  document.location.hash = "#!/" + encodeURIComponent(expression);
+  var term = parse(expression);
+  if (!term) out("Syntax error");
+  else termEval(term);
+  document.body.scrollTop = document.body.scrollHeight;
+  return false;
+}
+
+window.onload = function() {
+  var query= getQuery();
+  if (query == "") return;
+  document.getElementById('exp').value= query;
+//  printIt();
+}
+
+window.onhashchange = window.onload;
+
 -->
 </script>
   <style type="text/css">
@@ -28,31 +46,50 @@ var out= (function() {
   body {
     margin: 1em 3em 1em 3em;
   }
-  h2 {
-    font-family: Helvetica;
-    border-color:#ccc; border-style:solid; border-width:0 0 1px;
+
+  h1 {
+    margin: 0em;
+    padding: 0.5em;
   }
 
-  h1, h3, h4, b{
+  h1.title {
     font-family: Helvetica;
-  }
-
-  p {
-    margin-left: 1em;
+    position: fixed;
+    background-color: rgba(255,255,255,0.9);
   }
 
   /*]]>*/
   </style>
 </head>
 
-<body onload="runtest();">
-  <h1>Lambda Calculator</h1>
-
-<form id="query" action="" onsubmit="return printIt()">
-
-</form>
+<body>
+  <h1 class="title">Lambda Calculator</h1>
+  <h1>&nbsp;</h1>
 
 <pre id="transcript"> </pre>
 
+<form id="query" action="" onsubmit="return printIt()">
+
+<input id="exp" type="text" size=60 name="q" value="(λx.x) y">
+<input type="submit" name="submit" value="enter">
+
+</form>
+<p>Examples</p>
+<ul>
+
+
+<li><a href="#!/(%CE%BBx.%CE%BBy.%20x)%20A%20B">(λx.λy. x) A B</a></li>
+
+<li><a href="#!/(%CE%BBx.x%20x)%20(%CE%BBx.x%20x)">(λx.x x) (λx.x x)</a></li>
+
+<li><a href="#!/%CE%BBg.(%CE%BBx.g%20(x%20x))%20(%CE%BBx.g%20(x%20x))">λg.(λx.g (x x)) (λx.g (x x))</a></li>
+
+<li><a href="#!/(%CE%BBm.%CE%BBn.%CE%BBf.%CE%BBx.(m%20f%20(n%20f%20x)))%20(%CE%BBf.%CE%BBx.(f%20(f%20x)))%20(%CE%BBf.%CE%BBx.(f%20(f%20(f%20x))))">(λm.λn.λf.λx.(m f (n f x))) (λf.λx.(f (f x))) (λf.λx.(f (f (f x))))</a></li>
+
+
+<!-- (λm.λn.λf.λx.(m f (n f x))) (λf.λx.(f (f x))) (λf.λx.(f (f (f x))))
+-->
+
+</ul>
 </body>
 </html>

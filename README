@@ -12,27 +12,23 @@ node lambda.js
 
 ** peg syntax
 
-name = [a-z]
+name = [a-z][A-Z][0-9]+
 var = name
-abs = "λ" name "." term
+abs = ("λ" | "\" | "L") name "." term
 paren = ( term )
 prim = paren | abs | var
 app = prim prim*
 term = app
 
-file://localhost/Users/takashi/src/lambda/lambda.html
-http://www.cis.upenn.edu/~bcpierce/tapl/checkers/untyped/
-http://code.google.com/p/tapl-haskell/
-
 true = \x.\y.x
 false = \x.\y.y
 if-then-else = \a.\b.\c.((a)b)c
 
-todo: URL input
-
-λg.λx.(g xx) λx.g xx
-λg.(λx.g xx) λx.g xx
+todo: Return null when the parser doesn't match
 
 * references
 
 http://code.google.com/p/visual-lambda/
+file://localhost/Users/takashi/src/lambda/lambda.html
+http://www.cis.upenn.edu/~bcpierce/tapl/checkers/untyped/
+http://code.google.com/p/tapl-haskell/

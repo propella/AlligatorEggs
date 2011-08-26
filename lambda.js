@@ -23,6 +23,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+// ---------- User Interface ----------
+
+function getQuery() {
+  var query = window.location.hash;
+
+  var match = /^#!\/(.*)/.exec(query);
+  if (!match) return "";
+  // var each = query.split("&");
+  // for (var i= 0; i < each.length; i++) {
+  //   var pair= each[i].split("=");
+  //   if (pair[0] == "q") return decodeURIComponent(pair[1]);
+  // }
+  return decodeURIComponent(match[1]);
+}
+
+
 // ---------- Term Structure ----------
 // [Var, idx] -- idx is a Bruijn index (bound) or string (unbound)
 // [Abs, string, term] -- string is a hint of the variable name
@@ -154,7 +170,9 @@ function show(term, ctx) {
 //           or [false] if failed
 
 function parse(source) {
-  return parseTerm(source, [])[1];
+  var match = parseTerm(source, []);
+  if (!match[0]) return null;
+  return match[1];
 }
 
 // term = app
@@ -169,9 +187,9 @@ function parsePrim(source, ctx) {
                 parseVar))(source, ctx);
 }
 
-// name = [a-z]
+// name = [a-z][A-Z][0-9]
 function parseName(source, ctx) {
-  var match = parseRegExp(/^([a-z])\s*/)(source, ctx);
+  var match = parseRegExp(/^([a-zA-Z0-9]+)\s*/)(source, ctx);
   if (!match[0]) return [false];
   return [true, match[1], match[2]];
 }
@@ -202,7 +220,7 @@ function parseAppLeft(first, rest) {
   return parseAppLeft([App, first, second], rest.slice(1));
 }
 
-// abs = "\|L|λ|" name "." term
+// abs = ("λ" | "\" | "L") name "." term
 function parseAbs(source, ctx) {
   var result = seq(parseRegExp(/^([\\Lλ])\s*/),
                    parseName)(source, ctx);
@@ -341,7 +359,7 @@ function runtest() {
   testEq(parseVar("b!", ["a"]), [true, [Var, "b"], "!"]);
 
   testEq(parsePrim("a!", ["a"]), [true, [Var, 0], "!"]);
-  testEq(many(parseVar)("aaa!", ["a"]), [true, [[Var, 0], [Var, 0], [Var, 0]] , "!"]);
+  testEq(many(parseVar)("a a a!", ["a"]), [true, [[Var, 0], [Var, 0], [Var, 0]] , "!"]);
 
   testEq(parseAppLeft(1, [2, 3, 4]), [App, [App, [App, 1, 2], 3], 4]);
 
