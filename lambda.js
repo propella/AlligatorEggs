@@ -27,14 +27,8 @@
 
 function getQuery() {
   var query = window.location.hash;
-
   var match = /^#!\/(.*)/.exec(query);
   if (!match) return "";
-  // var each = query.split("&");
-  // for (var i= 0; i < each.length; i++) {
-  //   var pair= each[i].split("=");
-  //   if (pair[0] == "q") return decodeURIComponent(pair[1]);
-  // }
   return decodeURIComponent(match[1]);
 }
 

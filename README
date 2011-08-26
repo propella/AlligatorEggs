@@ -24,6 +24,10 @@ true = \x.\y.x
 false = \x.\y.y
 if-then-else = \a.\b.\c.((a)b)c
 
+* todo
+
+todo: Animation
+todo: Global variable
 todo: Return null when the parser doesn't match
 
 * references
@@ -32,3 +36,5 @@ http://code.google.com/p/visual-lambda/
 file://localhost/Users/takashi/src/lambda/lambda.html
 http://www.cis.upenn.edu/~bcpierce/tapl/checkers/untyped/
 http://code.google.com/p/tapl-haskell/
+http://raphaeljs.com/animation.html
+http://keith-wood.name/svg.html
