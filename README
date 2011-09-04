@@ -26,6 +26,9 @@ if-then-else = \a.\b.\c.((a)b)c
 
 * todo
 
+todo: 色々ないろのワニを色々な場所に出す。
+todo: ワニの顎を動かす
+todo: JQuery
 todo: Animation
 todo: Global variable
 todo: Return null when the parser doesn't match
@@ -38,3 +41,5 @@ http://www.cis.upenn.edu/~bcpierce/tapl/checkers/untyped/
 http://code.google.com/p/tapl-haskell/
 http://raphaeljs.com/animation.html
 http://keith-wood.name/svg.html
+
+http://localhost/src/lambda/test.html

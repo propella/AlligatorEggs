@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name="generator" content=
+  "HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 15.3.6), see www.w3.org" />
+
+  <title>test</title>
+<style type="text/css">
+#stage { width: 400px; height: 300px; border: 2px solid #484; }
+</style>
+
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery.svg.js"></script>
+<script type="text/javascript" src="jquery.svganim.js"></script>
+
+<script type="text/javascript">
+<!--
+var stage;
+var alligator;
+
+var getNewId = function() {
+  var id = 0;
+  return function () { return "id" + (++id) }
+} ();
+
+$(function() {
+  $('#stage').svg({ onLoad: function () {
+    stage = $('#stage').svg('get');
+    var defs = stage.defs();
+    alligator = stage.svg(defs);
+    stage.load("open.svg", {parent: alligator, changeSize: true});
+  }});
+});
+
+var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'navy', 'black'];
+
+var newImg;
+
+function image () {
+  newImg = stage.clone(alligator)[0];
+  newImg.id = getNewId();
+  var x = random(400) - parseInt($(alligator).attr("width")) / 2;
+  var y = random(300) - parseInt($(alligator).attr("height")) / 2;
+  stage.change(newImg, {x: x, y: y});
+  $("style", newImg).text("#" + newImg.id + " .border { fill: " + colours[random(9)] + " }\n"
+                    + "#" + newImg.id + " .skin { fill: " + colours[random(9)] + "}" );
+//   $("g", newImg).animate({svgTransform: 'translate(-77.508909,-56.046681) rotate(10)'}, 1000)
+}
+
+function random(range) {
+  return Math.floor(Math.random() * range);
+}
+
+-->
+</script>
+</head>
+
+<body>
+
+<div id="stage"></div>
+
+<p>
+  <button id="image" onclick="image();">Add image</button>
+</p>
+
+</body>
+</html>
