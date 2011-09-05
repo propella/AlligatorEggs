@@ -33,21 +33,40 @@ $(function() {
     alligator = stage.svg(defs);
     stage.load("open.svg", {parent: alligator, changeSize: true});
   }});
+
+  $("#stage svg").click(function(event) {
+    var x = event.pageX - this.offsetLeft;
+    var y = event.pageY - this.offsetTop;
+    showAlligator(x, y)
+  });
+
 });
 
 var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'navy', 'black'];
 
 var newImg;
 
-function image () {
-  newImg = stage.clone(alligator)[0];
+function showAlligator(x0, y0) {
+  var x = x0 - 200;
+  var y = y0 - 60;
+
+  var a = $("#alligator", alligator)[0];
+  newImg = stage.clone(a)[0];
   newImg.id = getNewId();
-  var x = random(400) - parseInt($(alligator).attr("width")) / 2;
-  var y = random(300) - parseInt($(alligator).attr("height")) / 2;
-  stage.change(newImg, {x: x, y: y});
-  $("style", newImg).text("#" + newImg.id + " .border { fill: " + colours[random(9)] + " }\n"
-                    + "#" + newImg.id + " .skin { fill: " + colours[random(9)] + "}" );
-//   $("g", newImg).animate({svgTransform: 'translate(-77.508909,-56.046681) rotate(10)'}, 1000)
+
+  stage.style("#" + newImg.id + " .border { fill: " + colours[random(9)] + " }\n"
+            + "#" + newImg.id + " .skin { fill: " + colours[random(9)] + "}" );
+
+  var translate = "translate(" + x + "," + y + ")";
+  var rotate = "rotate(360, 200, 60)";
+    
+  stage.change(newImg, {transform: "translate(" + x + "," + y + ") rotate(0, 200, 60)"});
+
+  $(newImg).animate({svgTransform: translate + rotate}, 500);
+}
+
+function image () {
+  showAlligator(random(400), random(300));
 }
 
 function random(range) {
@@ -60,11 +79,9 @@ function random(range) {
 
 <body>
 
+<h1>JQuery SVG animation test</h1>
 <div id="stage"></div>
-
-<p>
-  <button id="image" onclick="image();">Add image</button>
-</p>
+<p><button id="image" onclick="image();">Add image</button></p>
 
 </body>
 </html>
