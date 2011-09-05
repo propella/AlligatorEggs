@@ -47,8 +47,11 @@ var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'na
 var newImg;
 
 function showAlligator(x0, y0) {
-  var x = x0 - 200;
-  var y = y0 - 60;
+  var cx = 228;
+  var cy = 70;
+
+  var x = x0 - cx;
+  var y = y0 - cy;
 
   var a = $("#alligator", alligator)[0];
   newImg = stage.clone(a)[0];
@@ -58,11 +61,14 @@ function showAlligator(x0, y0) {
             + "#" + newImg.id + " .skin { fill: " + colours[random(9)] + "}" );
 
   var translate = "translate(" + x + "," + y + ")";
-  var rotate = "rotate(360, 200, 60)";
+  var rotate0 = "rotate(0, " + cx + "," + cy + ")";
+  var rotate1 = "rotate(360, " + cx + "," + cy + ")";
     
-  stage.change(newImg, {transform: "translate(" + x + "," + y + ") rotate(0, 200, 60)"});
+  stage.change(newImg, {transform: translate + rotate0});
+  stage.change($("#face", newImg)[0], {transform: "rotate(35, 200, 100)"});
 
-  $(newImg).animate({svgTransform: translate + rotate}, 500);
+  $(newImg).animate({svgTransform: translate + rotate1}, 400,
+    function() { $("#face", newImg).animate({svgTransform: "rotate(0, 200, 100)"}, 200); });
 }
 
 function image () {
