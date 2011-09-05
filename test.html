@@ -44,8 +44,6 @@ $(function() {
 
 var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'navy', 'black'];
 
-var newImg;
-
 function showAlligator(x0, y0) {
   var cx = 228;
   var cy = 70;
@@ -54,11 +52,12 @@ function showAlligator(x0, y0) {
   var y = y0 - cy;
 
   var a = $("#alligator", alligator)[0];
-  newImg = stage.clone(a)[0];
+  var newImg = stage.clone(a)[0];
   newImg.id = getNewId();
 
-  stage.style("#" + newImg.id + " .border { fill: " + colours[random(9)] + " }\n"
-            + "#" + newImg.id + " .skin { fill: " + colours[random(9)] + "}" );
+  var hue = random(360);
+  stage.style("#" + newImg.id + " .border { fill: hsl(" + hue + ",100%,25%) }"
+            + "#" + newImg.id + " .skin { fill: hsl(" + hue + ",100%,65%) }" );
 
   var translate = "translate(" + x + "," + y + ")";
   var rotate0 = "rotate(0, " + cx + "," + cy + ")";
@@ -67,7 +66,7 @@ function showAlligator(x0, y0) {
   stage.change(newImg, {transform: translate + rotate0});
   stage.change($("#face", newImg)[0], {transform: "rotate(35, 200, 100)"});
 
-  $(newImg).animate({svgTransform: translate + rotate1}, 400,
+  $(newImg).animate({svgTransform: translate + rotate1}, 1000,
     function() { $("#face", newImg).animate({svgTransform: "rotate(0, 200, 100)"}, 200); });
 }
 
