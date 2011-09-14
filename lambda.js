@@ -148,9 +148,19 @@ function show(term, ctx) {
     return term[1];
   case Abs:
     var pair = pickFreshName(ctx, term[1]);
-    return "(λ" + pair[1] + "." + show(term[2], pair[0]) + ")";
+    return "λ" + pair[1] + "." + show(term[2], pair[0]);
   case App:
-    return "(" + show(term[1], ctx) + " " + show(term[2], ctx) + ")";
+    // You can reduce further in case of "x λx.x", but I omit for sake of simplicity.
+    var t1 = term[1];
+    var t2 = term[2];
+    var show1 = show(t1, ctx);
+    var show2 = show(t2, ctx);
+    if (t1[0] == Abs && t2[0] == App) return "(" + show1 + ") (" + show2 + ")";
+    if (t1[0] == Abs && t2[0] == Abs) return "(" + show1 + ") (" + show2 + ")";
+    if (t1[0] == Abs)                 return "(" + show1 + ") "  + show2;
+    if (t2[0] == App)                 return       show1  + " (" + show2 + ")";
+    if (t2[0] == Abs)                 return show1        + " (" + show2 + ")";
+                                      return show1         + " " + show2;
   }
   throw	"unknown tag:" + term[0];
 }
@@ -295,9 +305,9 @@ function eq(a, b) {
 }
 
 function testEq(a, b) {
-  if (eq(a, b)) return out("success");
+  if (eq(a, b)) out("success");
   else out("expect: " + b + " but: " + a);
-    console.log("expect: ", b, " but: ", a);
+  return;
 }
 
 function runtest() {
@@ -378,17 +388,26 @@ function runtest() {
   testEq(show([Var, 1], ["a", "b"]), "b");
   testEq(show([Var, "c"], ["a", "b"]), "c");
 
-  testEq(show([Abs, "x", [Var, 1]], ["y"]),
-         "(λx.y)");
+  testEq(show([Abs, "x", [Var, 1]], ["y"]), "λx.y");
 
-  testEq(show([App, [Var, 0], [App, [Var, 1], [Var, 2]]], ["a", "b", "c"]), "(a (b c))");
 
-  testEq(show(parseTerm("λf.λx.x")[1], []), "(λf.(λx.x))");
-  testEq(show(parseTerm("λf.λx.f (f (f x))")[1], []), "(λf.(λx.(f (f (f x)))))");
+  testEq(show([App, [Var, 0], [App, [Var, 1], [Var, 2]]], ["a", "b", "c"]), "a (b c)");
 
-  testEq(show(parseTerm("λg.(λx.g (x x)) (λx.g (x x))")[1], []),
-         "(λg.((λx.(g (x x))) (λx.(g (x x)))))");
+  testEq(show(parse("λf.λx.x"), []), "λf.λx.x");
 
+  testEq(show(parse("(λx.x) (x x)"), []), "(λx.x) (x x)");
+  testEq(show(parse("(λx.x) (λx.x)"), []), "(λx.x) (λx.x)");
+  testEq(show(parse("(λx.x) x"), []), "(λx.x) x");
+  testEq(show(parse("x x (x x)"), []), "x x (x x)");
+  testEq(show(parse("x (x x)"), []), "x (x x)");
+  testEq(show(parse("x x (λx.x)"), []), "x x (λx.x)");
+  testEq(show(parse("x x x"), []), "x x x");
+  testEq(show(parse("x (λx.x)"), []), "x (λx.x)");
+
+  testEq(show(parse("λf.λx.f (f (f x))"), []), "λf.λx.f (f (f x))");
+
+  testEq(show(parse("λg.(λx.g (x x)) (λx.g (x x))"), []),
+         "λg.(λx.g (x x)) (λx.g (x x))");
 }
 
 // For debug: run test cases when it is run with node.js.
