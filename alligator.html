@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name="generator" content=
+  "HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 15.3.6), see www.w3.org" />
+
+  <title>Alligator Calculator</title>
+  <script type="text/javascript" src="jquery.js"></script>
+  <script type="text/javascript" src="jquery.svg.js"></script>
+  <script type="text/javascript" src="jquery.svganim.js"></script>
+  <script type="text/javascript" src="lambda.js"></script>
+  <script type="text/javascript" src="alligator.js"></script>
+  <style type="text/css">
+/*<![CDATA[*/
+  body {
+    margin: 1em 3em 1em 3em;
+  }
+
+  h1 {
+    margin: 0em;
+    padding: 0.5em;
+  }
+
+  h1.title {
+    font-family: Helvetica;
+    position: fixed;
+    background-color: rgba(255,255,255,0.9);
+  }
+
+  #stage { width: 400px;
+    height: 300px;
+    border: 1px solid #484;
+    margin: 1em 0em 1em 0em;
+  }
+
+  /*]]>*/
+  </style>
+</head>
+
+<body>
+  <h1 class="title">Alligator Eggs Calculator</h1>
+  <h1>&nbsp;</h1>
+
+  <div id="stage"></div>
+
+
+<form id="query" action="" onsubmit="return showIt()">
+<input id="exp" type="text" size=60 name="q" value="(λx.x) y">
+<input type="submit" name="submit" value="enter">
+</form>
+<p>Examples</p>
+<ul>
+<li><a href="#!/(%CE%BBx.%CE%BBy.%20x)%20A%20B">(λx.λy. x) A B</a></li>
+<li><a href="#!/(%CE%BBx.x%20x)%20(%CE%BBx.x%20x)">(λx.x x) (λx.x x)</a></li>
+<li><a href="#!/%CE%BBg.(%CE%BBx.g%20(x%20x))%20(%CE%BBx.g%20(x%20x))">λg.(λx.g (x x)) (λx.g (x x))</a></li>
+<li><a href="#!/(%CE%BBm.%CE%BBn.%CE%BBf.%CE%BBx.(m%20f%20(n%20f%20x)))%20(%CE%BBf.%CE%BBx.(f%20(f%20x)))%20(%CE%BBf.%CE%BBx.(f%20(f%20(f%20x))))">(λm.λn.λf.λx.(m f (n f x))) (λf.λx.(f (f x))) (λf.λx.(f (f (f x))))</a></li>
+
+</ul>
+
+<pre id="transcript"></pre>
+
+</body>
+</html>
