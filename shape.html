@@ -1,92 +1,37 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta http-equiv="Content-Type" content=
+  "text/html; charset=utf-8" />
   <meta name="generator" content=
   "HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 15.3.6), see www.w3.org" />
 
   <title>test</title>
-<style type="text/css">
-#stage { width: 400px; height: 300px; border: 2px solid #484; }
-</style>
+  <style type="text/css">
+  #stage { width: 400px; height: 300px; border: 2px solid #484; }
+  </style>
 
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript" src="jquery.svg.js"></script>
-<script type="text/javascript" src="jquery.svganim.js"></script>
-
-<script type="text/javascript">
-<!--
-var stage;
-var alligator;
-
-var getNewId = function() {
-  var id = 0;
-  return function () { return "id" + (++id) }
-} ();
-
-$(function() {
-  $('#stage').svg({ onLoad: function () {
-    stage = $('#stage').svg('get');
-    var defs = stage.defs();
-    alligator = stage.svg(defs);
-    stage.load("open.svg", {parent: alligator, changeSize: true});
-  }});
-
-  $("#stage svg").click(function(event) {
-    var x = event.pageX - this.offsetLeft;
-    var y = event.pageY - this.offsetTop;
-    showAlligator(x, y)
-  });
-
-});
-
-var colours = ['purple', 'red', 'orange', 'yellow', 'lime', 'green', 'blue', 'navy', 'black'];
-
-function showAlligator(x0, y0) {
-  var cx = 228;
-  var cy = 70;
-
-  var x = x0 - cx;
-  var y = y0 - cy;
-
-  var a = $("#alligator", alligator)[0];
-  var newImg = stage.clone(a)[0];
-  newImg.id = getNewId();
-
-  var hue = random(360);
-  stage.style("#" + newImg.id + " .border { fill: hsl(" + hue + ",100%,25%) }"
-            + "#" + newImg.id + " .skin { fill: hsl(" + hue + ",100%,65%) }" );
-
-  var translate = "translate(" + x + "," + y + ")";
-  var rotate0 = "rotate(0, " + cx + "," + cy + ")";
-  var rotate1 = "rotate(360, " + cx + "," + cy + ")";
-    
-  stage.change(newImg, {transform: translate + rotate0});
-  stage.change($("#face", newImg)[0], {transform: "rotate(35, 200, 100)"});
-
-  $(newImg).animate({svgTransform: translate + rotate1}, 1000,
-    function() { $("#face", newImg).animate({svgTransform: "rotate(0, 200, 100)"}, 200); });
-}
-
-function image () {
-  showAlligator(random(400), random(300));
-}
-
-function random(range) {
-  return Math.floor(Math.random() * range);
-}
-
--->
-</script>
+  <script type="text/javascript" src="jquery.js"></script>
+  <script type="text/javascript" src="jquery.svg.js"></script>
+  <script type="text/javascript" src="jquery.svganim.js"></script>
+  <script type="text/javascript" src="shape.js"></script>
+  <script type="text/javascript">
+  $(Shape.demo);
+  </script>
 </head>
 
 <body>
+  <h1>JQuery SVG animation test</h1>
 
-<h1>JQuery SVG animation test</h1>
-<div id="stage"></div>
-<p><button id="image" onclick="image();">Add image</button></p>
+  <div id="stage"></div>
 
+  <form id="options" name="options">
+    <p><button id="image" onclick="return Shape.remove();">Remove images</button></p>
+    <label><input type="radio" name="type" value="awake" checked/> Awake</label> 
+    <label><input type="radio" name="type" value="sleep" /> Sleep</label> 
+    <label><input type="radio" name="type" value="egg" /> Egg</label>
+  </form>
 </body>
 </html>

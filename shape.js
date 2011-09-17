@@ -1,19 +1,33 @@
+var Shape = {};
+
+(function () {
+
 var stage;
 var alligator;
 var egg;
+
+   Shape.demo = function () {
+     Shape.init($("#stage"));
+     $("#stage svg").click(onclick);
+   };
+
+   Shape.init = function (_stage) {
+     _stage.svg({ onLoad: function () { loadShapes(_stage); } });
+   };
+
+   Shape.remove = function () {
+     console.log($(".shape", stage.root()));
+     $(".shape", stage.root()).remove();
+     return false;
+   };
 
 var getNewId = function() {
   var id = 0;
   return function () { return "id" + (++id); };
 } ();
 
-$(function() {
-  $('#stage').svg({ onLoad: loadShapes });
-  $("#stage svg").click(onclick);
-});
-
-function loadShapes () {
-  stage = $('#stage').svg('get');
+function loadShapes (_stage) {
+  stage = _stage.svg('get');
   var defs = stage.defs();
 
   alligator = stage.svg(defs);
@@ -30,15 +44,15 @@ function onclick (event) {
 
   switch(type) {
   case "awake":
-    return showAlligator(x, y);
+    return Shape.showAwake(x, y);
   case "sleep":
-    return showSleep(x, y);
+    return Shape.showSleep(x, y);
   case "egg":
-    return showEgg(x, y);
+    return Shape.showEgg(x, y);
   }
 }
 
-function showEgg(x0, y0) {
+Shape.showEgg = function (x0, y0) {
   var eggLayer = $("#egg", egg)[0];
   var newImg = stage.clone(eggLayer)[0];
   newImg.id = getNewId();
@@ -49,12 +63,13 @@ function showEgg(x0, y0) {
 
   var translate = "translate(" + x0 + "," + y0 + ")";
   stage.change(newImg, {transform: translate});
-}
+};
 
-function showSleep(x, y) {
+Shape.showSleep = function (x, y) {
 
   var a = $("#alligator", alligator)[0];
   var newImg = stage.clone(a)[0];
+  newImg.setAttribute("class", "shape");
   newImg.id = getNewId();
 
   stage.style("#" + newImg.id + " .border { fill: hsl(0,0%,50%) }"
@@ -66,7 +81,7 @@ function showSleep(x, y) {
   stage.change($("#face", newImg)[0], {transform: "rotate(35, 200, 100)"});
 }
 
-function showAlligator(x0, y0) {
+Shape.showAwake = function (x0, y0) {
   var cx = 228;
   var cy = 70;
 
@@ -75,6 +90,7 @@ function showAlligator(x0, y0) {
 
   var a = $("#alligator", alligator)[0];
   var newImg = stage.clone(a)[0];
+  newImg.setAttribute("class", "shape");
   newImg.id = getNewId();
 
   var hue = random(360);
@@ -95,3 +111,5 @@ function showAlligator(x0, y0) {
 function random(range) {
   return Math.floor(Math.random() * range);
 }
+
+}) ();

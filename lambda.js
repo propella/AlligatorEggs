@@ -296,17 +296,29 @@ function seq(parser1, parser2) {
 function eq(a, b) {
   if (a == b) return true;
   if (a == undefined || b == undefined) return false;
-  if (a.constructor != Array || b.constructor != Array) return false;
-  if (a.length != b.length) return false;
-  for (var i= 0; i < b.length; i++) {
-    if (!eq(a[i], b[i])) return false;
+  if (a.constructor == Array && b.constructor == Array) {
+    if (a.length != b.length) return false;
+    for (var i= 0; i < b.length; i++) {
+      if (!eq(a[i], b[i])) return false;
+    }
+    return true;
   }
-  return true;
+  if (typeof a == "object" && a.constructor == b.constructor) {
+    for (var i in a) {
+      if (!eq(a[i], b[i])) return false;
+    }
+    return true;
+  }
+  return false;
 }
 
 function testEq(a, b) {
-  if (eq(a, b)) out("success");
-  else out("expect: " + b + " but: " + a);
+  if (eq(a, b)) {
+    out("success");
+  } else {
+    out("expect: " + b + " but: " + a);
+    console.log(["expect: ", b, " but: ", a]);
+  }
   return;
 }
 
