@@ -74,39 +74,8 @@ window.onhashchange = initExp;
 // ---------- View Data Structures ----------
 
 var Egg = Shape.Egg;
-
-function Eggs(terms) {
-  this.terms = terms;
-}
-
-Eggs.prototype = {
-  toString: function () {
-    var inner = this.terms.map(function(e) {
-                               return e.toString();
-                             }).join(",");
-    return "Eggs[" + inner + "]";
-  },
-  show: function (x, y) {
-    for (var i = 0; i < this.terms.length; i++) {
-      this.terms[i].show(x + i * 50, y);
-    }
-  }
-};
-
-function Awake(name, term) {
-  this.name = name;
-  this.term = term;
-}
-
-Awake.prototype = {
-  toString: function () {
-    return "Awake(" + this.name + "," + this.term.toString() + ")";
-  },
-  show: function (x, y) {
-    Shape.showAwake(x,y);
-    this.term.show(x, y + 100);
-  }
-};
+var Eggs = Shape.Eggs;
+var Awake = Shape.Awake;
 
 function termToView(term, ctx) {
   switch (term[0]) {
