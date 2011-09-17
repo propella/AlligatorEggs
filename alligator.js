@@ -73,18 +73,7 @@ window.onhashchange = initExp;
 
 // ---------- View Data Structures ----------
 
-function Egg(idx) {
-  this.idx = idx;
-}
-
-Egg.prototype = {
-  toString: function () {
-    return "Egg(" + this.idx + ")";
-  },
-  show: function (x, y) {
-    Shape.showEgg(x,y);
-  }
-};
+var Egg = Shape.Egg;
 
 function Eggs(terms) {
   this.terms = terms;

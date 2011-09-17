@@ -3,6 +3,7 @@ var Shape = {};
 (function () {
 
 var stage;
+var Defs;
 var alligator;
 var egg;
 
@@ -28,12 +29,12 @@ var getNewId = function() {
 
 function loadShapes (_stage) {
   stage = _stage.svg('get');
-  var defs = stage.defs();
+  Defs = stage.defs();
 
-  alligator = stage.svg(defs);
+  alligator = stage.svg(Defs);
   stage.load("open.svg", { parent: alligator, changeSize: true });
 
-  egg = stage.svg(defs);
+  egg = stage.svg(Defs);
   stage.load("egg.svg", { parent: egg, changeSize: true });
 }
 
@@ -52,17 +53,56 @@ function onclick (event) {
   }
 }
 
-Shape.showEgg = function (x0, y0) {
-  var eggLayer = $("#egg", egg)[0];
-  var newImg = stage.clone(eggLayer)[0];
-  newImg.id = getNewId();
+   // ---------- View Data Structures ----------
 
-  var hue = random(360);
-  stage.style("#" + newImg.id + " .border { fill: hsl(" + hue + ",100%,25%) }"
-            + "#" + newImg.id + " .skin { fill: hsl(" + hue + ",100%,65%) }" );
+   function nameToHue (name) {
+     var n = name.charCodeAt(0);
+     return (91 * n + 7) % 360;
+   };
 
-  var translate = "translate(" + x0 + "," + y0 + ")";
-  stage.change(newImg, {transform: translate});
+
+   // Variable
+   // @param idx (string) variable name
+   function Egg(idx) {
+     this.idx = idx;
+   }
+
+   Egg.prototype = {
+     toString: function () {
+       return "Egg(" + this.idx + ")";
+     },
+     show: function (x, y) {
+       var shape = this.shape();
+       var translate = "translate(" + x + "," + y + ")";
+       stage.change(shape, {transform: translate});
+       stage.root().appendChild(shape);
+     },
+     shape: function() {
+       if (this._shape) return this._shape;
+       this._shape = this.makeShape();
+       return this._shape;
+     },
+     makeShape: function() {
+       var layer = $("#egg", egg)[0];
+       var newImg = layer.cloneNode(true);
+       newImg.setAttribute("class", "shape");
+       newImg.id = getNewId();
+
+       var hue = nameToHue(this.idx);
+       stage.style("#" + newImg.id + " .border { fill: hsl(" + hue + ",100%,25%) }"
+                   + "#" + newImg.id + " .skin { fill: hsl(" + hue + ",100%,65%) }" );
+       return newImg;
+     }
+   };
+
+   Shape.Egg = Egg;
+
+   // ---------- SVG Surface ----------
+
+
+Shape.showEgg = function (x, y) {
+  var name = $("#varname").val();
+  (new Egg(name)).show(x, y);
 };
 
 Shape.showSleep = function (x, y) {
@@ -79,7 +119,7 @@ Shape.showSleep = function (x, y) {
 
   stage.change(newImg, {transform: translate});
   stage.change($("#face", newImg)[0], {transform: "rotate(35, 200, 100)"});
-}
+};
 
 Shape.showAwake = function (x0, y0) {
   var cx = 228;
@@ -89,7 +129,11 @@ Shape.showAwake = function (x0, y0) {
   var y = y0 - 50;
 
   var a = $("#alligator", alligator)[0];
-  var newImg = stage.clone(a)[0];
+
+  var newImg = a.cloneNode(true);
+  NewImg = newImg;
+
+  stage.root().appendChild(newImg);
   newImg.setAttribute("class", "shape");
   newImg.id = getNewId();
 
@@ -106,7 +150,7 @@ Shape.showAwake = function (x0, y0) {
 
   $(newImg).animate({svgTransform: translate + rotate1}, 1000,
     function() { $("#face", newImg).animate({svgTransform: "rotate(0, 200, 100)"}, 200); });
-}
+};
 
 function random(range) {
   return Math.floor(Math.random() * range);
