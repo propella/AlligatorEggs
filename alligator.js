@@ -34,9 +34,25 @@ function showIt() {
   var expression = document.getElementById('exp').value;
   document.location.hash = "#!/" + encodeURIComponent(expression);
   var term = parse(expression);
+TheTerm = term;
   if (!term) out("Syntax error");
   else showResult(term);
   return false;
+}
+
+function next () {
+  if (!TheTerm) return false;
+  TheTerm = eval1(TheTerm);
+  if (TheTerm == null) return false;
+  else showResult(TheTerm);
+  return true;
+}
+
+function auto () {
+  var hasNext = next();
+  if (hasNext) {
+    setTimeout(auto, 1000);
+  }
 }
 
 function showResult(term) {
@@ -53,6 +69,9 @@ TheView = view;
 $(function() {
   Shape.init($("#stage"));
   $("#stage > svg").attr("viewBox", "0 0 1600 1200");
+  $("#enter").click(showIt);
+  $("#next").click(next);
+  $("#auto").click(auto);
   initExp();
   runViewTest();
 });
