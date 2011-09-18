@@ -1,91 +1,76 @@
+// Graphical wrapper for alligator pictures.
+
 var Shape = {};
 
 (function () {
 
-   var stage;
+   var Stage; // SVG Wrapper for the stage object.
 
-   var EggSVG;
    var EggShape;
    var EggWidth;
    var EggHeight;
 
-   var AlligatorSVG;
    var AlligatorShape;
    var AlligatorWidth;
    var AlligatorHeight;
 
-   Shape.demo = function () {
-     Shape.init($("#stage"));
-     $("#stage > svg").attr("viewBox", "0 0 1600 1200");
-     $("#stage > svg").click(onclick);
+   // Initialize the state
+   // @param stage (HTMLElement) An element which SVG is attached.
+   Shape.init = function (stage) {
+     stage.svg({ onLoad: function () { loadShapes(stage); } });
    };
 
-   Shape.init = function (_stage) {
-     _stage.svg({ onLoad: function () { loadShapes(_stage); } });
-   };
-
+   // Remove all object on the stage
    Shape.remove = function () {
-     $(".shape", stage.root()).remove();
+     $(".shape", Stage.root()).remove();
      return false;
    };
 
+   function loadShapes (stage) {
+     Stage = stage.svg('get');
+     var defs = Stage.defs();
+
+     var alligatorSVG = Stage.svg(defs);
+     Stage.load("open.svg", { parent: alligatorSVG, changeSize: true, onLoad: initAlligator });
+
+     var eggSVG = Stage.svg(defs);
+     Stage.load("egg.svg", { parent: eggSVG, changeSize: true, onLoad: initEgg });
+   }
+
+   function initEgg (wrapper) {
+     EggShape = $("#egg", Stage.root())[0];
+     EggWidth = parseFloat($(EggShape.parentNode).attr("width"));
+     EggHeight = parseFloat($(EggShape.parentNode).attr("height"));
+   }
+
+   function initAlligator (wrapper) {
+     AlligatorShape = $("#alligator", Stage.root())[0];
+     AlligatorWidth = parseFloat($(AlligatorShape.parentNode.parentNode).attr("width"));
+     AlligatorHeight = parseFloat($(AlligatorShape.parentNode.parentNode).attr("height"));
+   }
+
+   // ---------- Utilities ----------
+
+   // Utility function to get a new identifier
    var getNewId = function() {
      var id = 0;
      return function () { return "id" + (++id); };
    } ();
 
-   function loadShapes (_stage) {
-     stage = _stage.svg('get');
-     var defs = stage.defs();
-
-     AlligatorSVG = stage.svg(defs);
-     stage.load("open.svg", { parent: AlligatorSVG, changeSize: true, onLoad: initAlligator });
-
-     EggSVG = stage.svg(defs);
-     stage.load("egg.svg", { parent: EggSVG, changeSize: true, onLoad: initEgg });
-   }
-
-   function initEgg (wrapper) {
-     EggShape = $("#egg", EggSVG)[0];
-     EggWidth = parseFloat($(EggSVG).attr("width"));
-     EggHeight = parseFloat($(EggSVG).attr("height"));
-   }
-
-   function initAlligator (wrapper) {
-     AlligatorShape = $("#alligator", AlligatorSVG)[0];
-     AlligatorWidth = parseFloat($(AlligatorSVG).attr("width"));
-     AlligatorHeight = parseFloat($(AlligatorSVG).attr("height"));
-   }
-
-function onclick (event) {
-  var x = (event.pageX - this.offsetLeft) * 4;
-  var y = (event.pageY - this.offsetTop) * 4;
-  var type = $("input[@name=type]:checked").val();
-
-  switch(type) {
-  case "awake":
-    return Shape.showAwake(x, y);
-  case "sleep":
-    return Shape.showSleep(x, y);
-  case "egg":
-    return Shape.showEgg(x, y);
-  }
-}
-
-   // ---------- View Data Structures ----------
-
-   function nameToHue (name) {
+   function nameToStyle (id, name) {
      var n = name.charCodeAt(0);
-     return (91 * n + 7) % 360;
+     var hue = (91 * n + 7) % 360;
+     return "#" + id + " .border { fill: hsl(" + hue + ",100%,25%) }"
+          + "#" + id + " .skin { fill: hsl(" + hue + ",100%,65%) }";
    };
 
-   // The super class of shape classes.
-   function View () {};
+   // ---------- Shape Data Structures ----------
 
-   View.prototype = {
+   // Common interface of shape objects
+   ShapeBase = {
      translate: function (x, y) {
        var translate = "translate(" + x + "," + y + ")";
-       stage.change(this.shape(), {transform: translate});
+       Stage.change(this.shape(), {transform: translate});
      },
      shape: function() {
        if (this._shape) return this._shape;
@@ -94,12 +79,12 @@ function onclick (event) {
      },
      show: function (x, y) {
        this.translate(x, y);
-       stage.root().appendChild(this.shape());
+       Stage.root().appendChild(this.shape());
        return this;
      },
      underOld: function (aBoolean) { return false; },
-     width: function () { return 0; },
-     height: function () { return 0; }
+     width: function () { throw "To be implemented"; },
+     height: function () { throw "To be implemented"; }
    };
 
    // Variable Name
@@ -108,7 +93,7 @@ function onclick (event) {
      this.idx = idx;
    }
 
-   Egg.prototype = $.extend({}, View.prototype, {
+   Egg.prototype = $.extend({}, ShapeBase, {
      toString: function () {
        return "Egg(" + this.idx + ")";
      },
@@ -116,22 +101,21 @@ function onclick (event) {
        var newImg = EggShape.cloneNode(true);
        newImg.setAttribute("class", "shape");
        newImg.id = getNewId();
-
-       var hue = nameToHue(this.idx);
-       stage.style("#" + newImg.id + " .border { fill: hsl(" + hue + ",100%,25%) }"
-                   + "#" + newImg.id + " .skin { fill: hsl(" + hue + ",100%,65%) }" );
+       Stage.style(nameToStyle(newImg.id, this.idx));
        return newImg;
      },
      width: function () { return EggWidth; },
      height: function () { return EggHeight; }
    });
 
+   // Application
+   // @param terms (Array) object to be applied. right associative.
    function Eggs(terms) {
      this.terms = terms;
      this._underOld = false; // true if it is enclosed by other eggs (old alligator)
    }
 
-   Eggs.prototype = $.extend({}, View.prototype, {
+   Eggs.prototype = $.extend({}, ShapeBase, {
      underOld: function (aBoolean) {
        if (aBoolean !== undefined) {
          this._underOld = aBoolean;
@@ -155,7 +139,7 @@ function onclick (event) {
          x = _x >= 0 ? _x : 0;
 
          var shape = this.oldShape();
-         stage.change(shape, {transform: "translate(" + ax + ", -50)"});
+         Stage.change(shape, {transform: "translate(" + ax + ", -50)"});
          g.appendChild(shape);
        }
        var y = this.underOld() ? AlligatorHeight : 0;
@@ -173,18 +157,18 @@ function onclick (event) {
          x += each.width();
        });
 
-       stage.rect(g, 0, 0, this.width(), this.height(), 20, 20,
+       Stage.rect(g, 0, 0, this.width(), this.height(), 20, 20,
          {fill: 'none',  stroke: 'green', strokeWidth: 2});
 
        return g;
      },
      oldShape: function() {
        var newImg = AlligatorShape.cloneNode(true);
-       stage.style("#" + newImg.id + " .border { fill: hsl(0,0%,50%) }"
+       Stage.style("#" + newImg.id + " .border { fill: hsl(0,0%,50%) }"
                    + "#" + newImg.id + " .skin { fill: hsl(0,0%,100%) }" );
        var translate = "translate(" + 0 + "," + (0 - 50) + ")";
-       stage.change(newImg, {transform: translate});
-       stage.change($("#face", newImg)[0], {transform: "rotate(35, 200, 100)"});
+       Stage.change(newImg, {transform: translate});
+       Stage.change($("#face", newImg)[0], {transform: "rotate(35, 200, 100)"});
        return newImg;
      },
      termWidth: function () {
@@ -202,12 +186,15 @@ function onclick (event) {
      }
    });
 
+   // Abstraction
+   // @param name (String) A variable name
+   // @param term (ViewBase)
    function Awake(name, term) {
      this.name = name;
      this.term = term;
    }
 
-   Awake.prototype = $.extend({}, View.prototype, {
+   Awake.prototype = $.extend({}, ShapeBase, {
      toString: function () {
        return "Awake(" + this.name + "," + this.term.toString() + ")";
      },
@@ -215,7 +202,7 @@ function onclick (event) {
        this.x = x;
        this.y = y;
        var translate = "translate(" + x + "," + (y - 50) + ")";
-       stage.change(this.shape(), {transform: translate});
+       Stage.change(this.shape(), {transform: translate});
      },
      animate: function() {
        var cx = 228;
@@ -225,8 +212,8 @@ function onclick (event) {
        var rotate1 = "rotate(360, " + cx + "," + cy + ")";
        var face = $("#face", this.shape());
 
-       stage.change(this.shape(), {transform: translate + rotate0});
-       stage.change(face[0], {transform: "rotate(35, 200, 100)"});
+       Stage.change(this.shape(), {transform: translate + rotate0});
+       Stage.change(face[0], {transform: "rotate(35, 200, 100)"});
 
        $(this.shape()).animate({svgTransform: translate + rotate1}, 1000,
        function() { face.animate({svgTransform: "rotate(0, 200, 100)"}, 200); });
@@ -238,9 +225,7 @@ function onclick (event) {
        var newImg = AlligatorShape.cloneNode(true);
        newImg.id = getNewId();
 
-       var hue = nameToHue(this.name);
-       stage.style("#" + newImg.id + " .border { fill: hsl(" + hue + ",100%,25%) }"
-                   + "#" + newImg.id + " .skin { fill: hsl(" + hue + ",100%,65%) }" );
+       Stage.style(nameToStyle(newImg.id, this.name));
 
        g.appendChild(newImg);
        g.appendChild(this.term.shape());
@@ -249,14 +234,14 @@ function onclick (event) {
        var ax = x < 0 ? -x : 0;
        var tx = x >= 0 ? x : 0;
 
-       stage.change(newImg, {transform: "translate(" + ax + ", 0)"});
+       Stage.change(newImg, {transform: "translate(" + ax + ", 0)"});
 
        this.term.translate(tx, AlligatorHeight + 50);
 
-       stage.rect(g, ax, 50, AlligatorWidth, AlligatorHeight, 20, 20,
+       Stage.rect(g, ax, 50, AlligatorWidth, AlligatorHeight, 20, 20,
                   {fill: 'none',  stroke: 'red', strokeWidth: 2});
 
-       stage.rect(g, 0, 50, this.width(), this.height(), 20, 20,
+       Stage.rect(g, 0, 50, this.width(), this.height(), 20, 20,
                   {fill: 'none',  stroke: 'blue', strokeWidth: 2});
        return g;
      },
@@ -272,23 +257,46 @@ function onclick (event) {
    Shape.Eggs = Eggs;
    Shape.Awake = Awake;
 
-   // ---------- SVG Surface ----------
+   // ---------- Test code for shape.html ----------
 
+   Shape.demo = function () {
+     Shape.init($("#stage"));
+     $("#stage > svg").attr("viewBox", "0 0 1600 1200");
+     $("#stage > svg").click(onclick);
+   };
 
-Shape.showEgg = function (x, y) {
-  var name = $("#varname").val();
-  (new Egg(name)).show(x, y);
-};
+   function onclick (event) {
+     var x = (event.pageX - this.offsetLeft) * 4;
+     var y = (event.pageY - this.offsetTop) * 4;
+     var type = $("input[@name=type]:checked").val();
 
-Shape.showSleep = function (x, y) {
-  var name = $("#varname").val();
-  (new Eggs([new Egg(name), new Eggs([new Egg(name), new Egg(name)])])).show(x, y);
-};
+     switch(type) {
+     case "awake":
+       showAwake(x, y);
+       break;
+     case "sleep":
+       showSleep(x, y);
+       break;
+     case "egg":
+       showEgg(x, y);
+       break;
+     }
+   }
 
-Shape.showAwake = function (x, y) {
-  var name = $("#varname").val();
-  (new Awake(name, new Egg("y"))).show(x, y).animate();
-  return;
-};
+   function showEgg (x, y) {
+     var name = $("#varname").val();
+     (new Egg(name)).show(x, y);
+   }
+
+   function showSleep (x, y) {
+     var name = $("#varname").val();
+     (new Eggs([new Egg(name), new Eggs([new Egg(name), new Egg(name)])])).show(x, y);
+   }
+
+   function showAwake (x, y) {
+     var name = $("#varname").val();
+     (new Awake(name, new Egg("y"))).show(x, y).animate();
+     return;
+   }
 
 }) ();
