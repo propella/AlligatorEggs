@@ -70,18 +70,17 @@ var Shape = {};
    ShapeBase = {
      translate: function (x, y) {
        var translate = "translate(" + x + "," + y + ")";
-       Stage.change(this.shape(), {transform: translate});
-     },
-     shape: function() {
-       if (this._shape) return this._shape;
-       this._shape = this.makeShape();
-       return this._shape;
+       $(this._shape).attr("transform", translate);
      },
      show: function (x, y) {
+       this.construct();
+       this.layout();
        this.translate(x, y);
-       Stage.root().appendChild(this.shape());
+       Stage.root().appendChild(this._shape);
        return this;
      },
+     construct: function() {},
+     layout: function () {}, // Layout inside of the object
      underOld: function (aBoolean) { return false; },
      width: function () { throw "To be implemented"; },
      height: function () { throw "To be implemented"; }
@@ -97,11 +96,12 @@ var Shape = {};
      toString: function () {
        return "Egg(" + this.idx + ")";
      },
-     makeShape: function() {
+     construct: function () {
        var newImg = EggShape.cloneNode(true);
        newImg.setAttribute("class", "shape");
        newImg.id = getNewId();
        Stage.style(nameToStyle(newImg.id, this.idx));
+       this._shape = newImg;
        return newImg;
      },
      width: function () { return EggWidth; },
@@ -128,47 +128,52 @@ var Shape = {};
                                   }).join(",");
        return "Eggs[" + inner + "]";
      },
-     makeShape: function() {
+     construct: function () {
        var g = document.createElementNS($.svg.svgNS, "g");
        g.setAttribute("class", "shape");
-       var x = 0;
 
        if (this.underOld()) {
-         var _x = (AlligatorWidth - this.termWidth()) / 2;
-         var ax = _x < 0 ? -_x : 0;
-         x = _x >= 0 ? _x : 0;
-
-         var shape = this.oldShape();
-         Stage.change(shape, {transform: "translate(" + ax + ", -50)"});
+         var shape = this.sleepingShape();
          g.appendChild(shape);
        }
-       var y = this.underOld() ? AlligatorHeight : 0;
 
        $.each(this.terms, function(i, each) {
          each.underOld(each instanceof Eggs);
-         g.appendChild(each.shape()); // warning: It updates uniderOld of the children.
+         g.appendChild(each.construct());
        });
+       this._shape = g;
+       return g;
+     },
+     layout: function () {
+       var tx = 0;
 
+       if (this.underOld()) {
+         var x = (AlligatorWidth - this.termWidth()) / 2;
+         var ax = x < 0 ? -x : 0;
+         tx = x >= 0 ? x : 0;
+
+         var alligator = this._shape.firstChild;
+         $(alligator).attr("transform", "translate(" + ax + ", -50)");
+         $("#face", alligator).attr("transform", "rotate(35, 200, 100)");
+       }
+
+       var y = this.underOld() ? AlligatorHeight : 0;
        var termHeight = this.termHeight();
 
        $.each(this.terms, function(i, each) {
          var dy = (termHeight - each.height()) / 2;
-         each.translate(x, y + dy);
-         x += each.width();
+         each.layout();
+         each.translate(tx, y + dy);
+         tx += each.width();
        });
 
-       Stage.rect(g, 0, 0, this.width(), this.height(), 20, 20,
+       Stage.rect(this._shape, 0, 0, this.width(), this.height(), 20, 20,
          {fill: 'none',  stroke: 'green', strokeWidth: 2});
-
-       return g;
      },
-     oldShape: function() {
+     sleepingShape: function() {
        var newImg = AlligatorShape.cloneNode(true);
        Stage.style("#" + newImg.id + " .border { fill: hsl(0,0%,50%) }"
                    + "#" + newImg.id + " .skin { fill: hsl(0,0%,100%) }" );
-       var translate = "translate(" + 0 + "," + (0 - 50) + ")";
-       Stage.change(newImg, {transform: translate});
-       Stage.change($("#face", newImg)[0], {transform: "rotate(35, 200, 100)"});
        return newImg;
      },
      termWidth: function () {
@@ -202,7 +207,7 @@ var Shape = {};
        this.x = x;
        this.y = y;
        var translate = "translate(" + x + "," + (y - 50) + ")";
-       Stage.change(this.shape(), {transform: translate});
+       $(this._shape).attr("transform", translate);
      },
      animate: function() {
        var cx = 228;
@@ -210,40 +215,37 @@ var Shape = {};
        var translate = "translate(" + this.x + "," + (this.y - 50) + ")";
        var rotate0 = "rotate(0, " + cx + "," + cy + ")";
        var rotate1 = "rotate(360, " + cx + "," + cy + ")";
-       var face = $("#face", this.shape());
+       var face = $("#face", this._shape);
 
-       Stage.change(this.shape(), {transform: translate + rotate0});
-       Stage.change(face[0], {transform: "rotate(35, 200, 100)"});
+       $(this._shape).attr("transform", translate + rotate0);
+       face.attr("transform", "rotate(35, 200, 100)");
 
-       $(this.shape()).animate({svgTransform: translate + rotate1}, 1000,
+       $(this._shape).animate({svgTransform: translate + rotate1}, 1000,
        function() { face.animate({svgTransform: "rotate(0, 200, 100)"}, 200); });
      },
-     makeShape: function() {
+     construct: function () {
        var g = document.createElementNS($.svg.svgNS, "g");
        g.setAttribute("class", "shape");
-
        var newImg = AlligatorShape.cloneNode(true);
        newImg.id = getNewId();
-
        Stage.style(nameToStyle(newImg.id, this.name));
-
        g.appendChild(newImg);
-       g.appendChild(this.term.shape());
-
+       g.appendChild(this.term.construct());
+       this._shape = g;
+       return g;
+     },
+     layout: function () {
        var x = (AlligatorWidth - this.term.width()) / 2;
        var ax = x < 0 ? -x : 0;
        var tx = x >= 0 ? x : 0;
 
-       Stage.change(newImg, {transform: "translate(" + ax + ", 0)"});
-
+       $(this._shape.firstChild).attr("transform", "translate(" + ax + ", 0)");
+       this.term.layout();
        this.term.translate(tx, AlligatorHeight + 50);
 
-       Stage.rect(g, ax, 50, AlligatorWidth, AlligatorHeight, 20, 20,
-                  {fill: 'none',  stroke: 'red', strokeWidth: 2});
-
-       Stage.rect(g, 0, 50, this.width(), this.height(), 20, 20,
+       Stage.rect(this._shape, 0, 50, this.width(), this.height(), 20, 20,
                   {fill: 'none',  stroke: 'blue', strokeWidth: 2});
-       return g;
+
      },
      width: function () {
        return Math.max(this.term.width(), AlligatorWidth);
