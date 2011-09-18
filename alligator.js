@@ -36,13 +36,12 @@ function showIt() {
   var term = parse(expression);
   if (!term) out("Syntax error");
   else showResult(term);
-  document.body.scrollTop = document.body.scrollHeight;
   return false;
 }
 
 function showResult(term) {
-  console.log(term);
   var view = termToView(term, []);
+TheView = view;
   out(view);
   Shape.remove();
   view.show(0,0);
@@ -53,12 +52,7 @@ function showResult(term) {
 
 $(function() {
   Shape.init($("#stage"));
-
-  $("#stage svg").click(function(event) {
-    var x = event.pageX - this.offsetLeft;
-    var y = event.pageY - this.offsetTop;
-    Shape.showAwake(x, y);
-  });
+  $("#stage > svg").attr("viewBox", "0 0 1600 1200");
   initExp();
   runViewTest();
 });
@@ -67,6 +61,7 @@ function initExp() {
   var query= getQuery();
   if (query == "") return;
   $("#exp").val(query);
+  setTimeout(showIt, 200); // for debug
 }
 
 window.onhashchange = initExp;

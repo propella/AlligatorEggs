@@ -20,10 +20,6 @@ prim = paren | abs | var
 app = prim prim*
 term = app
 
-true = \x.\y.x
-false = \x.\y.y
-if-then-else = \a.\b.\c.((a)b)c
-
 * todo
 
 todo: ワニを配置
