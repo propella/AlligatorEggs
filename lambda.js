@@ -96,6 +96,29 @@ function findApp(term) {
   throw "unknown tag:" + term[0];
 }
 
+// Collect references pointing to the index.
+// findSbst(term, 0) means next variables to be substituted.
+// @param term (Term)
+// @param idx (Number) index to be found.
+function findSbst(term, idx) {
+  var variables = [];
+  switch (term[0]) {
+  case Var:
+    if (term[1] === idx) variables.push(term);
+    break;
+  case Abs:
+    variables.push.apply(variables, findSbst(term[2], idx + 1));
+    break;
+  case App:
+    variables.push.apply(variables, findSbst(term[1], idx));
+    variables.push.apply(variables, findSbst(term[2], idx));
+    break;
+  default:
+    throw "unknown tag:" + term[0];
+  }
+  return variables;
+}
+
 function termSbstTop(func, arg) {
   if (func[0] != Abs) return null;
   var term = func[2];
@@ -341,6 +364,17 @@ function testEq(a, b) {
 }
 
 function runtest() {
+
+  console.log(parseTerm("x", ["x"])[1]);
+
+  out("-- find substitution test --");
+  testEq(findSbst([Var, 5], 5), [[Var, 5]]);
+  testEq(findSbst(parse("λx.x"), 0) [[Var, 0]]);
+  testEq(findSbst(parse("λx.λy.x"), 0) [[Var, 1]]);
+  testEq(findSbst(parse("λx.(x x)"), 0) [[Var, 0], [Var, 0]]);
+  testEq(findSbst(parse("λx.(x (λx.x))"), 0) [[Var, 0]]);
+  testEq(findSbst(parse("λx.(x (λy.x))"), 0) [[Var, 0], [Var, 1]]);
+
   out("-- find app test --");
   testEq(findApp(parse("x")), null);
   testEq(findApp(parse("x x")), null);

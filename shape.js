@@ -1,8 +1,12 @@
 // Graphical wrapper for alligator pictures.
+//
+// Egg represents a variable
+// Eggs represents applications (can have more than two elements, these are left associative)
+// Awake represents abstraction (a lambda expression)
 
 var Shape = {};
 
-(function () {
+(function() {
 
    var Stage; // SVG Wrapper for the stage object.
 
@@ -97,7 +101,8 @@ var Shape = {};
      this.term = term;
    }
 
-   Egg.prototype = $.extend({}, ShapeBase, {
+   Egg.prototype = $.extend({}, ShapeBase,
+   {
      toString: function () {
        return "Egg(" + this.idx + ")";
      },
@@ -127,9 +132,11 @@ var Shape = {};
      this.children = children;
      this.term = term;
      this._underOld = false; // true if it is enclosed by other eggs (old alligator)
+     this._animationPos = 0; // 0 to 1.0
    }
 
-   Eggs.prototype = $.extend({}, ShapeBase, {
+   Eggs.prototype = $.extend({}, ShapeBase,
+   {
      underOld: function (aBoolean) {
        if (aBoolean !== undefined) {
          this._underOld = aBoolean;
@@ -184,11 +191,17 @@ var Shape = {};
 
        var y = this.underOld() ? AlligatorHeight : 0;
        var childHeight = this.childHeight();
+       var firstChildWidth = this.children[1].width();
+       var animationPos = this._animationPos;
 
        $.each(this.children, function(i, each) {
          var dy = (childHeight - each.height()) / 2;
          each.layout();
-         each.translate(tx, y + dy);
+         var dx = 0;
+         if (i > 1) {
+           dx = -firstChildWidth * animationPos;
+         }
+         each.translate(tx + dx, y + dy);
          tx += each.width();
        });
 
@@ -217,24 +230,34 @@ var Shape = {};
      animateEat: function(callback) {
        var func = this.children[0];
        var arg = this.children[1];
-       var rest = this.children.slice(2);
-       var funcWidth = func.width();
-       var side = funcWidth + arg.width();
-       var transforms = rest.map(function(e) { return $(e._shape).attr("transform"); });
        var x = func.width() / 2;
        var y = 0;
-       $(arg._shape).animate({svgTransform: "translate(" + x + "," + y + ") scale(0)"},
+       var alias = arg._shape.cloneNode(true);
+       this._shape.appendChild(alias);
+       var self = this;
+       $(arg._shape).attr("visibility", "hidden");
+
+       $(alias).animate({svgTransform: "translate(" + x + "," + y + ") scale(0)"},
                               {ducation: 500,
                               step: function(now, fx) {
-                                var x = -arg.width() * fx.pos;
-                                var delta = "translate(" + x + ",0)";
-                                $.each(rest, function(i, each) {
-                                         $(each._shape).attr("transform", transforms[i] + delta);
-                                       });
+                                self._animationPos = fx.pos;
+                                self.layout();
                                 },
                               complete: callback
                               });
-         }
+     },
+     animateHatch: function() {
+       var func = this.children[0];
+       var arg = this.children[1];
+       var vars = findSbst(this.term[1], -1);
+       var eggs = vars.map(function(each) { return func.findTerm(each); });
+       $.each(eggs, function(i, egg) {
+                var clone = arg._shape.cloneNode(true);
+                $(clone).attr("visibility", "visible");
+                $(clone).attr("transform", "translate(0,0)");
+                egg._shape.appendChild(clone);
+              });
+     }
    });
 
    // Abstraction
@@ -247,7 +270,8 @@ var Shape = {};
      this.term = term;
    }
 
-   Awake.prototype = $.extend({}, ShapeBase, {
+   Awake.prototype = $.extend({}, ShapeBase,
+   {
      toString: function () {
        return "Awake(" + this.name + "," + this.child.toString() + ")";
      },

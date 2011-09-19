@@ -44,13 +44,17 @@ function next () {
   if (!TheTerm) return;
   var view = TheView;
   var app = findApp(TheTerm);
+
   var appliedShape = view.findTerm(app);
   if (!appliedShape) return;
+
+
   appliedShape.animateEat(function() {
                             TheTerm = eval1(TheTerm);
                             if (TheTerm == null) return;
                             else showResult(TheTerm);
                           });
+  appliedShape.animateHatch();
 }
 
 function auto () {

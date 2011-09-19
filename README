@@ -22,9 +22,8 @@ term = app
 
 * todo
 
-todo: ワニを配置
-todo: JQuery
-todo: Global variable
+todo: hach animation
+todo: lambda.js namespacing
 todo: Return null when the parser doesn't match
 
 * references
