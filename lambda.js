@@ -56,7 +56,6 @@ function termEval(term) {
   return null;
 }
 
-
 // Eval one step.
 // Return null if no further steps are present.
 function eval1(term) {
@@ -74,6 +73,25 @@ function eval1(term) {
     if (arg != null) return [App, term[1], arg];
 
     return termSbstTop(term[1], term[2]);
+  }
+  throw "unknown tag:" + term[0];
+}
+
+// Find an application to be evaluated
+// Return null if no further steps are present.
+function findApp(term) {
+  switch (term[0]) {
+  case Var:
+    return null;
+  case Abs:
+    return findApp(term[2]);
+  case App:
+    var func = findApp(term[1]);
+    if (func != null) return func;
+    var arg = findApp(term[2]);
+    if (arg != null) return arg;
+    if (term[1][0] != Abs) return null;
+    return term;
   }
   throw "unknown tag:" + term[0];
 }
@@ -323,6 +341,13 @@ function testEq(a, b) {
 }
 
 function runtest() {
+  out("-- find app test --");
+  testEq(findApp(parse("x")), null);
+  testEq(findApp(parse("x x")), null);
+  testEq(findApp(parse("x.x")), null);
+  testEq(findApp(parse("(λx.x) x")), parse("(λx.x) x"));
+  testEq(findApp(parse("λx.(λy.y) x")), parseTerm("(λy.y) x", ["x"])[1]);
+
   out("-- shift test --");
   testEq(termShift(1, 1, [Var, 1]), [Var, 2]);
   testEq(termShift(1, 2, [Var, 1]), [Var, 1]);

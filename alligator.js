@@ -41,18 +41,22 @@ TheTerm = term;
 }
 
 function next () {
-  if (!TheTerm) return false;
-  TheTerm = eval1(TheTerm);
-  if (TheTerm == null) return false;
-  else showResult(TheTerm);
-  return true;
+  if (!TheTerm) return;
+  var view = TheView;
+  var app = findApp(TheTerm);
+  var appliedShape = view.findTerm(app);
+  if (!appliedShape) return;
+  appliedShape.animateEat(function() {
+                            TheTerm = eval1(TheTerm);
+                            if (TheTerm == null) return;
+                            else showResult(TheTerm);
+                          });
 }
 
 function auto () {
-  var hasNext = next();
-  if (hasNext) {
-    setTimeout(auto, 1000);
-  }
+  if (!TheTerm) return;
+  next();
+  setTimeout(auto, 1000);
 }
 
 function showResult(term) {
@@ -94,12 +98,12 @@ var Awake = Shape.Awake;
 function termToView(term, ctx) {
   switch (term[0]) {
   case Var:
-    if (typeof term[1] == "number" && term[1] < ctx.length) return new Egg(ctx[term[1]]);
-    if (typeof term[1] == "number") return new Egg("?" + term[1]);
-    return new Egg(term[1]);
+    if (typeof term[1] == "number" && term[1] < ctx.length) return new Egg(ctx[term[1]], term);
+    if (typeof term[1] == "number") return new Egg("?" + term[1], term);
+    return new Egg(term[1], term);
   case Abs:
     var pair = pickFreshName(ctx, term[1]);
-    return new Awake(pair[1], termToView(term[2], pair[0]));
+    return new Awake(pair[1], termToView(term[2], pair[0]), term);
   case App:
     return termToEggs(term, ctx);
   }
@@ -110,13 +114,14 @@ function termToEggs(term, ctx) {
   switch (term[0]) {
   case Var:
   case Abs:
-    return new Eggs([termToView(term, ctx)]);
+    return new Eggs([termToView(term, ctx)], term);
   case App:
     var t1 = term[1];
     var t2 = term[2];
     var show1 = termToEggs(t1, ctx);
     var show2 = termToView(t2, ctx);
-    return new Eggs(show1.terms.concat(show2));
+    var thisTerm = show1.term[0] == App ? t1 : term; // fix me
+    return new Eggs(show1.children.concat(show2), thisTerm);
   }
   throw	"unknown tag:" + term[0];
 }
@@ -124,20 +129,38 @@ function termToEggs(term, ctx) {
 
 function runViewTest() {
   out("-- termToView test --");
-  testEq(termToView(parseTerm("x",["x"])[1],["x"]), new Egg("x"));
-  testEq(termToView(parse("x"),[]), new Egg("x"));
-  testEq(termToView(parse("λx.x"),[]), new Awake("x", new Egg("x")));
-  testEq(termToView(parse("x y"),[]), new Eggs([new Egg("x"), new Egg("y")]));
-  testEq(termToView(parse("x x x"),[]), new Eggs([new Egg("x"), new Egg("x"), new Egg("x")]));
-  testEq(termToView(parse("x (x x)"),[]),
-         new Eggs([new Egg("x"), new Eggs([new Egg("x"), new Egg("x")])]));
-  testEq(termToView(parse("(x x) (x x)"),[]),
-         new Eggs([new Egg("x"), new Egg("x"), new Eggs([new Egg("x"), new Egg("x")])]));
+  var t;
+  t = parseTerm("x",["x"])[1];
+  testEq(termToView(t, ["x"]), new Egg("x", t));
 
-  testEq(termToView(parse("λx.x x"),[]),
-         new Awake("x", new Eggs([new Egg("x"), new Egg("x")])));
+  t = parse("x");
+  testEq(termToView(t, []), new Egg("x", t));
 
-  testEq(termToView(parse("(λx.x) x"),[]),
-         new Eggs([new Awake("x", new Egg("x")), new Egg("x")]));
+  testEq(termToView(parse("λx.x"),[]).toString(), "Awake(x,Egg(x))");
 
+  t = parse("x y");
+  testEq(termToView(t,[]).toString(), "Eggs[Egg(x),Egg(y)]");
+  testEq(termToView(t,[]).term, t);
+  testEq(termToView(t,[]).children[0].term, [Var, "x"]);
+  testEq(termToView(t,[]).children[1].term, [Var, "y"]);
+
+  t = parse("x x x");
+  testEq(termToView(t,[]).toString(), "Eggs[Egg(x),Egg(x),Egg(x)]");
+  testEq(termToView(t,[]).term, parse("x x"));
+
+  testEq(termToView(parse("x (x x)"),[]).toString(), "Eggs[Egg(x),Eggs[Egg(x),Egg(x)]]");
+
+  testEq(termToView(parse("(x x) (x x)"),[]).toString(),
+         "Eggs[Egg(x),Egg(x),Eggs[Egg(x),Egg(x)]]");
+
+  t = parse("λx.x");
+  testEq(termToView(t,[]).toString(), "Awake(x,Egg(x))");
+  testEq(termToView(t,[]).term, t);
+  testEq(termToView(t,[]).child.term, [Var, 0]);
+
+  testEq(termToView(parse("λx.x x"),[]).toString(),
+         "Awake(x,Eggs[Egg(x),Egg(x)])");
+
+  testEq(termToView(parse("(λx.x) x"),[]).toString(),
+         "Eggs[Awake(x,Egg(x)),Egg(x)]");
 }
