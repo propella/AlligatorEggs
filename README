@@ -22,7 +22,7 @@ term = app
 
 * todo
 
-todo: hach animation
+todo: fix 50 px vertial offset
 todo: lambda.js namespacing
 todo: Return null when the parser doesn't match
 

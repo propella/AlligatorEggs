@@ -49,18 +49,48 @@ function next () {
   if (!appliedShape) return;
 
 
-  appliedShape.animateEat(function() {
-                            TheTerm = eval1(TheTerm);
-                            if (TheTerm == null) return;
-                            else showResult(TheTerm);
-                          });
-  appliedShape.animateHatch();
+  appliedShape.animateEat(
+    function(now, fx) {
+      appliedShape._animationPos = fx.pos;
+      TheView.layout();
+    },
+    function() {
+    });
+
+
+  setTimeout(function() {
+    appliedShape.animateDead(function() { TheView.layout(); });
+  }, 1000);
+  setTimeout(function() {
+    appliedShape.animateHatch(function() { TheView.layout(); });
+  }, 2000);
+  setTimeout(function() {
+    TheTerm = eval1(TheTerm);
+    if (TheTerm == null) return;
+    else showResult(TheTerm);
+  }, 3000);
+
+
+
+
+
+
+  // setTimeout(function() {
+  //   appliedShape.animateHatch(function() { TheView.layout(); });
+  // }, 1000);
+
+  // setTimeout(function() {
+  //   TheTerm = eval1(TheTerm);
+  //   if (TheTerm == null) return;
+  //   else showResult(TheTerm);
+  // }, 2000);
+
 }
 
 function auto () {
   if (!TheTerm) return;
   next();
-  setTimeout(auto, 1000);
+  setTimeout(auto, 3000);
 }
 
 function showResult(term) {
