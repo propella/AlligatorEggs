@@ -64,18 +64,24 @@ var Shape = {};
    // A heuristic way to map from a function name to a color
    function nameToStyle (id, name) {
      var n = name.charCodeAt(0);
+     for (var i = 1; i < name.length; i++) {
+       n += name.charCodeAt(0);
+     }
+
      var hue = (91 * n + 7) % 360;
      return "#" + id + " .border { fill: hsl(" + hue + ",100%,25%) }"
           + "#" + id + " .skin { fill: hsl(" + hue + ",100%,65%) }";
    };
+
+   function translate(x, y) { return "translate(" + x + "," + y + ") "; }
+   function scale(n) { return "scale(" + n + ") "; }
 
    // ---------- Shape Data Structures ----------
 
    // Common interface of shape objects
    ShapeBase = {
      translate: function (x, y) {
-       var translate = "translate(" + x + "," + y + ") scale(1)";
-       $(this._shape).attr("transform", translate);
+       $(this._shape).attr("transform", translate(x, y) + scale(1));
      },
      show: function (x, y) {
        this.construct();
@@ -88,7 +94,7 @@ var Shape = {};
      construct: function() {},
      layout: function () {}, // Layout inside of the object
      constructDebugRect: function(parent, color) {
-       color = 'none';
+       return;
        this._debugRect = Stage.rect(parent, 0, 0, 100, 100, 20, 20,
          {fill: 'none',  stroke: color, strokeWidth: 2});
      },
@@ -99,8 +105,7 @@ var Shape = {};
      },
      underOld: function (aBoolean) { return false; },
      width: function () { throw "To be implemented"; },
-     height: function () { throw "To be implemented"; },
-     eatAnimation: function() { throw "To be implemented"; }
+     height: function () { throw "To be implemented"; }
    };
 
    // Variable Name
@@ -126,46 +131,49 @@ var Shape = {};
        }
      },
      construct: function () {
-       var newImg = EggShape.cloneNode(true);
-       newImg.setAttribute("class", "shape");
-       newImg.id = getNewId();
-       Stage.style(nameToStyle(newImg.id, this.idx));
-       this._shape = newImg;
-       return newImg;
+       var eggShape = EggShape.cloneNode(true);
+       eggShape.id = getNewId();
+       Stage.style(eggShape, nameToStyle(eggShape.id, this.idx));
+
+       var g = document.createElementNS($.svg.svgNS, "g");
+       g.setAttribute("class", "shape");
+       g.appendChild(eggShape);
+
+       this._shape = g;
+       return g;
      },
      layout: function() {
-//       if (!this._newborn) return;
-//       $(this._newborn).attr("transform", "scale(" + this._animationPos + ")");
+       if (!this._newborn) return;
+       $(this._shape.firstChild).attr("opacity", (1 - this._animationPos));
+       $(this._shape.firstChild).attr("transform", translate(
+                              Math.max((this.newbornWidth() - EggWidth) / 2, 0),
+                              Math.max((this.newbornHeight() - EggHeight) / 2, 0)));
      },
+     newbornWidth: function() { return this._newborn.width() * this._animationPos; },
+     newbornHeight: function() { return this._newborn.height() * this._animationPos; },
      width: function () {
-       if  (this._newborn) {
-         return Math.max(EggWidth, this._newborn.width() * this._animationPos);
-       } else {
-         return EggWidth;
-       }
+       return this._newborn ? Math.max(EggWidth, this.newbornWidth()) : EggWidth;
      },
      height: function () {
-       if  (this._newborn) {
-         return Math.max(EggHeight, this._newborn.height() * this._animationPos);
-       } else {
-         return EggHeight;
-       }
+       return this._newborn ? Math.max(EggHeight, this.newbornHeight()) : EggHeight;
      },
      animateHatch: function(arg, step) {
-       this._newborn = $.extend({}, arg); // Copy original
-       this._newborn._shape = arg._shape.cloneNode(true);
+       var shape = arg._shape.cloneNode(true);
 
-       $(this._newborn._shape).attr("visibility", "visible");
-       $(this._newborn._shape).attr("transform", "translate(0,-50)");
-       this._shape.appendChild(this._newborn._shape);
+       $(shape).attr("visibility", "visible");
+       $(shape).attr("transform", translate(EggWidth / 2, EggHeight / 2) + scale(0));
+       this._shape.appendChild(shape);
        var self = this;
-       $(this._newborn._shape).animate({svgTransform: "translate(0, -50) scale(1)"},
+       $(shape).animate({svgTransform: translate(0, 0) + scale(1)},
                                 {duration: 1000,
                                 step: function(now, fx) {
                                     self._animationPos = fx.pos;
                                     step();
                                     }
                                 });
+
+       this._newborn = $.extend({}, arg); // Copy original
+       this._newborn._shape = shape;
      }
    });
 
@@ -235,7 +243,7 @@ var Shape = {};
          tx = x >= 0 ? x : 0;
 
          var alligator = this._shape.firstChild;
-         $(alligator).attr("transform", "translate(" + ax + ", " + y + ")");
+         $(alligator).attr("transform", translate(ax, y));
          $("#face", alligator).attr("transform", "rotate(35, 200, 100)");
 
        }
@@ -252,7 +260,7 @@ var Shape = {};
          if (i > 1) {
            dx = -argChildWidth * animationPos;
          }
-         each.translate(tx + dx, y + dy);
+         $(each._shape).attr("transform", translate(tx + dx, y + dy) + scale(1));
          tx += each.width();
        });
      },
@@ -280,14 +288,21 @@ var Shape = {};
      animateEat: function(step, callback) {
        var func = this.children[0];
        var arg = this.children[1];
-       var x = func.width() / 2;
-       var y = 0;
+
+       var x = func.width() / 2 + 80;
+       var y = 30 + (this.underOld() ? AlligatorHeight : 0);
+
        var alias = arg._shape.cloneNode(true);
        this._shape.appendChild(alias);
        var self = this;
        $(arg._shape).attr("visibility", "hidden");
 
-       $(alias).animate({svgTransform: "translate(" + x + "," + y + ") scale(0)"},
+       var face = $("#face", func._alligatorShape);
+       face.attr("transform", "rotate(35, 200, 100)");
+       face.animate({svgTransform: "rotate(-35, 200, 100)"});
+
+
+       $(alias).animate({svgTransform: translate(x, y) + scale(0)},
                         {duration: 1000,
                          step: step,
                          complete: callback
@@ -314,6 +329,7 @@ var Shape = {};
      this.child = child;
      this.term = term;
      this._animationPos = 0;
+     this._alligatorShape = null;
    }
 
    Awake.prototype = $.extend({}, ShapeBase,
@@ -330,15 +346,14 @@ var Shape = {};
        return null;
      },
      translate: function (x, y) {
-       this.x = x;
-       this.y = y;
-       var translate = "translate(" + x + "," + (y - 50) + ") scale(1)";
-       $(this._shape).attr("transform", translate);
+       this._x = x;
+       this._y = y;
+       $(this._shape).attr("transform", translate(x, y) + scale(1));
      },
-     animate: function() {
+     animate: function() { // only for test
        var cx = 228;
        var cy = 70;
-       var translate = "translate(" + this.x + "," + (this.y - 50) + ")";
+       var translate = "translate(" + this._x + "," + (this._y - 50) + ")";
        var rotate0 = "rotate(0, " + cx + "," + cy + ")";
        var rotate1 = "rotate(360, " + cx + "," + cy + ")";
        var face = $("#face", this._shape);
@@ -352,55 +367,59 @@ var Shape = {};
      construct: function () {
        var g = document.createElementNS($.svg.svgNS, "g");
        g.setAttribute("class", "shape");
-       var newImg = AlligatorShape.cloneNode(true);
-       newImg.id = getNewId();
-       Stage.style(nameToStyle(newImg.id, this.name));
-       g.appendChild(newImg);
+       this._alligatorShape = AlligatorShape.cloneNode(true);
+       this._alligatorShape.id = getNewId();
+       Stage.style(g, nameToStyle(this._alligatorShape.id, this.name));
+
+       g.appendChild(this._alligatorShape);
        g.appendChild(this.child.construct());
+
        this._shape = g;
        this.constructDebugRect(g, "blue");
        return g;
      },
      layout: function () {
-       var x = (AlligatorWidth - this.child.width()) / 2;
+       var x = (this.alligatorWidth() - this.child.width()) / 2;
        var ax = x < 0 ? -x : 0;
        var tx = x >= 0 ? x : 0;
-
-       $(this._shape.firstChild).attr("transform", "translate(" + ax + ", 0)");
+       $(this._alligatorShape).attr("transform", translate(ax, -50));
        this.child.layout();
-       this.child.translate(tx, AlligatorHeight * (1 - this._animationPos) + 50);
-       this.layoutDebugRect(50);
+       $(this.child._shape).attr("transform", translate(tx, this.alligatorHeight()) + scale(1));
+       this.layoutDebugRect(0);
+     },
 
-//       Stage.rect(this._shape, 0, 50, this.width(), this.height(), 20, 20,
-//                  {fill: 'none',  stroke: 'blue', strokeWidth: 2});
+     alligatorWidth: function() { return AlligatorWidth * (1 - this._animationPos); },
+     alligatorHeight: function() { return AlligatorHeight * (1 - this._animationPos); },
+     width: function () { return Math.max(this.alligatorWidth(), this.child.width()); },
+     height: function () { return this.alligatorHeight() + this.child.height(); },
 
-     },
-     width: function () {
-       return Math.max(this.child.width(), AlligatorWidth);
-     },
-     height: function () {
-       return AlligatorHeight * (1 - this._animationPos) + this.child.height();
-     },
      animateDead: function(step) {
        var cx = 228;
        var cy = 70;
-       var translate = "translate(" + this.x + "," + (this.y - 50) + ")";
+       var cx = 300;
+       var cy = 300;
        var rotate0 = "rotate(0, " + cx + "," + cy + ")";
        var rotate1 = "rotate(360, " + cx + "," + cy + ")";
-       var face = $("#face", this._shape);
 
-       $(this._shape).attr("transform", translate + rotate0);
-       face.attr("transform", "rotate(35, 200, 100)");
+       var x = (this.alligatorWidth() - this.child.width()) / 2;
+       var ax = x < 0 ? -x : 0;
+       var tx = x >= 0 ? x : 0;
+       var trans = translate(ax, -100);
+       $(this._alligatorShape).attr("transform", trans + rotate0);
+
+       $(this._alligatorShape).attr("opacity", "1");
 
        var self = this;
-       $(this._shape.firstChild).animate({svgTransform: translate + rotate1},
+       $(this._alligatorShape).animate({svgOpacity: 0,
+                                        svgTransform: trans + rotate1
+                                       },
                               {duration: 1000,
                                step: function(now, fx) {
                                  self._animationPos = fx.pos;
                                  step();
                                },
                                complete: function() {
-                                 $(self._shape.firstChild).attr("visibility", "hidden");
+                                 $(self._alligatorShape).attr("visibility", "hidden");
                                }
                               });
      }
