@@ -3,6 +3,7 @@
 * about
 
 Alligator Eggs Lambda Calculator
+http://metatoys.org/alligator/
 
 Based on Bret Victor's "Alligator Eggs!"
 
@@ -24,6 +25,7 @@ term = app
 
 * todo
 
+todo: use index.html instead of alligator.html
 todo: performance
 todo: lambda.js namespacing
 todo: Return null when the parser doesn't match
@@ -32,14 +34,8 @@ todo: Return null when the parser doesn't match
 
 http://worrydream.com/AlligatorEggs/
 http://code.google.com/p/visual-lambda/
-file://localhost/Users/takashi/src/lambda/lambda.html
 http://www.cis.upenn.edu/~bcpierce/tapl/checkers/untyped/
 http://code.google.com/p/tapl-haskell/
-http://raphaeljs.com/animation.html
 http://keith-wood.name/svg.html
-
-http://localhost/src/lambda/shape.html
-http://localhost/src/lambda/lambda.html
-http://localhost/src/lambda/alligator.html
 
 http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml#Naming
