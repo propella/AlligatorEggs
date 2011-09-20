@@ -8,7 +8,7 @@ var Shape = {};
 
 (function() {
 
-   var Stage; // SVG Wrapper for the stage object.
+//   var Stage; // SVG Wrapper for the stage object.
 
    var EggShape;
    var EggWidth;
@@ -68,7 +68,7 @@ var Shape = {};
        n += name.charCodeAt(0);
      }
 
-     var hue = (91 * n + 7) % 360;
+     var hue = (73 * n + 7) % 360;
      return "#" + id + " .border { fill: hsl(" + hue + ",100%,25%) }"
           + "#" + id + " .skin { fill: hsl(" + hue + ",100%,65%) }";
    };
@@ -107,6 +107,36 @@ var Shape = {};
      width: function () { throw "To be implemented"; },
      height: function () { throw "To be implemented"; }
    };
+
+   // Just for the background
+   function Field(shape) {
+     this.child = shape;
+     this._width = parseFloat($(Stage.root()).attr("width"));
+     this._height = parseFloat($(Stage.root()).attr("height"));
+   }
+
+   Field.prototype = $.extend({}, ShapeBase,
+   {
+     show: function() {
+       this.construct();
+       this.layout();
+       Stage.root().appendChild(this.child._shape);
+     },
+     construct: function() {
+       this.child.construct();
+     },
+     layout: function() {
+       var scaleX = this.width() / this.child.width();
+       var scaleY = this.height() / this.child.height();
+       var scaleXY = Math.min(scaleX, scaleY);
+       var offsetX = (this.width() - this.child.width() * scaleXY) / 2;
+       var offsetY = (this.height() - this.child.height() * scaleXY) / 2;
+       $(this.child._shape).attr("transform", translate(offsetX, offsetY) + scale(scaleXY));
+       this.child.layout();
+     },
+     width: function () { return this._width; },
+     height: function () { return this._height; }
+   });
 
    // Variable Name
    // @param idx (string) variable name
@@ -425,6 +455,7 @@ var Shape = {};
      }
    });
 
+   Shape.Field = Field;
    Shape.Egg = Egg;
    Shape.Eggs = Eggs;
    Shape.Awake = Awake;

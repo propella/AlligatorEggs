@@ -2,7 +2,9 @@
 
 * about
 
-Lambda Calculator
+Alligator Eggs Lambda Calculator
+
+Based on Bret Victor's "Alligator Eggs!"
 
 * test in console
 
@@ -22,13 +24,13 @@ term = app
 
 * todo
 
-todo: bigger pictures
-todo: rotation animation.
+todo: performance
 todo: lambda.js namespacing
 todo: Return null when the parser doesn't match
 
 * references
 
+http://worrydream.com/AlligatorEggs/
 http://code.google.com/p/visual-lambda/
 file://localhost/Users/takashi/src/lambda/lambda.html
 http://www.cis.upenn.edu/~bcpierce/tapl/checkers/untyped/

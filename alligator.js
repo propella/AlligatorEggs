@@ -25,80 +25,87 @@
 
 // ---------- User Interface ----------
 
+var ResultTimeID = null;
+var AutoTimeID = null;
+var TheTerm = null;
+var TheShape = null;
+
+var Field = Shape.Field;
+var Egg = Shape.Egg;
+var Eggs = Shape.Eggs;
+var Awake = Shape.Awake;
+
 function out(aString) {
   var transcript = $("#transcript");
   transcript.text(transcript.text() + aString + "\r\n");
 }
 
 function showIt() {
-  var expression = document.getElementById('exp').value;
+  stop();
+
+  var expression = $("#exp").val();
   document.location.hash = "#!/" + encodeURIComponent(expression);
-  var term = parse(expression);
-TheTerm = term;
-  if (!term) out("Syntax error");
-  else showResult(term);
+
+  TheTerm = parse(expression);
+  if (!TheTerm) out("Syntax error");
+  else showResult(TheTerm);
   return false;
 }
 
+// One step animation.
+// Return true if there is more room to reduce.
 function next () {
-  if (!TheTerm) return;
-  var view = TheView;
+  if (!TheTerm) return false;
+  var view = TheShape;
   var app = findApp(TheTerm);
 
   var appliedShape = view.findTerm(app);
-  if (!appliedShape) return;
+  if (!appliedShape) return false;
 
+  var newTerm = eval1(TheTerm);
+  if (!newTerm) return false;
 
   appliedShape.animateEat(
     function(now, fx) {
       appliedShape._animationPos = fx.pos;
-      TheView.layout();
+      TheField.layout();
     },
     function() {
     });
 
-
   setTimeout(function() {
-    appliedShape.animateDead(function() { TheView.layout(); });
+    appliedShape.animateDead(function() { TheField.layout(); });
   }, 1000);
+
   setTimeout(function() {
-    appliedShape.animateHatch(function() { TheView.layout(); });
+    appliedShape.animateHatch(function() { TheField.layout(); });
   }, 2000);
-  setTimeout(function() {
-    TheTerm = eval1(TheTerm);
-    if (TheTerm == null) return;
-    else showResult(TheTerm);
+
+  ResultTimeID = setTimeout(function() {
+    out(show(newTerm, []));
+    TheTerm = newTerm;
+    if (TheTerm) showResult(TheTerm);
   }, 3000);
-
-
-
-
-
-
-  // setTimeout(function() {
-  //   appliedShape.animateHatch(function() { TheView.layout(); });
-  // }, 1000);
-
-  // setTimeout(function() {
-  //   TheTerm = eval1(TheTerm);
-  //   if (TheTerm == null) return;
-  //   else showResult(TheTerm);
-  // }, 2000);
-
+  return true;
 }
 
 function auto () {
-  if (!TheTerm) return;
-  next();
-  setTimeout(auto, 3000);
+  var more = next();
+  if (!more) return;
+  AutoTimeID = setTimeout(auto, 3000);
+}
+
+function stop() {
+  clearTimeout(ResultTimeID);
+  clearTimeout(AutoTimeID);
 }
 
 function showResult(term) {
   var view = termToView(term, []);
-TheView = view;
-  out(view);
+  TheShape = view;
   Shape.remove();
-  view.show(0,0);
+  TheField = new Field(view);
+  TheField.show();
 }
 
 
@@ -106,12 +113,14 @@ TheView = view;
 
 $(function() {
   Shape.init($("#stage"));
-  $("#stage > svg").attr("viewBox", "0 0 1600 1200");
+//  $("#stage > svg").attr("viewBox", "0 0 1600 1200");
+  $("#query").submit(showIt);
   $("#enter").click(showIt);
   $("#next").click(next);
   $("#auto").click(auto);
+  $("#stop").click(stop);
   initExp();
-  runViewTest();
+//  runViewTest();
 });
 
 function initExp() {
@@ -124,10 +133,6 @@ function initExp() {
 window.onhashchange = initExp;
 
 // ---------- View Data Structures ----------
-
-var Egg = Shape.Egg;
-var Eggs = Shape.Eggs;
-var Awake = Shape.Awake;
 
 function termToView(term, ctx) {
   switch (term[0]) {

@@ -23,16 +23,15 @@
   h1 {
     margin: 0em;
     padding: 0.5em;
-  }
-
-  h1.title {
     font-family: Helvetica;
-    position: fixed;
-    background-color: rgba(255,255,255,0.9);
   }
 
-  #stage { width: 400px;
-    height: 300px;
+  input {
+    font-size: xx-large;
+  }
+
+  #stage { width: 600px;
+    height: 400px;
     border: 1px solid #484;
     margin: 1em 0em 1em 0em;
   }
@@ -43,24 +42,30 @@
 
 <body>
   <h1 class="title">Alligator Eggs Calculator</h1>
-  <h1>&nbsp;</h1>
 
   <div id="stage"></div>
 
 <form id="query" action="">
-<input id="exp" type="text" size=60 name="q" value="(λx.x) y">
+<input id="exp" type="text" size=60 name="q" value="(λx.x) y"><br/>
 <input id="enter" type="button" value="enter">
 <input id="next" type="button" value="next">
 <input id="auto" type="button" value="auto">
+<input id="stop" type="button" value="stop">
 </form>
 <p>Examples</p>
 <ul>
-<li><a href="#!/x%20(x%20x)">x (x x)</a></li>
-<li><a href="#!/(%CE%BBx.x)%20y">(λx.x) y</a></li>
-<li><a href="#!/(%CE%BBx.%CE%BBy.%20y)%20A%20B">(λx.λy. y) A B</a></li>
-<li><a href="#!/(%CE%BBx.x%20x)%20(%CE%BBx.x%20x)">(λx.x x) (λx.x x)</a></li>
-<li><a href="#!/%CE%BBg.(%CE%BBx.g%20(x%20x))%20(%CE%BBx.g%20(x%20x))">λg.(λx.g (x x)) (λx.g (x x))</a></li>
-<li><a href="#!/(%CE%BBm.%CE%BBn.%CE%BBf.%CE%BBx.(m%20f%20(n%20f%20x)))%20(%CE%BBf.%CE%BBx.(f%20(f%20x)))%20(%CE%BBf.%CE%BBx.(f%20(f%20(f%20x))))">(λm.λn.λf.λx.(m f (n f x))) (λf.λx.(f (f x))) (λf.λx.(f (f (f x))))</a></li>
+<li><a href="#!/x">x</a> : An egg</li>
+<li><a href="#!/%CE%BBx.x">λx.x</a> : Alligator and an egg</li>
+<li><a href="#!/(%CE%BBx.x)%20y">(λx.x) y</a> : An alligator eats an egg</li>
+<li><a href="#!/(%CE%BBx.x)%20(%CE%BBy.y)">(λx.x) (λy.y)</a> : Two alligators</li>
+<li><a href="#!/(%CE%BBx.%CE%BBy.%20x)%20a%20b">(λx.λy. x) a b</a> : Take first</li>
+<li><a href="#!/(%CE%BBx.%CE%BBy.%20y)%20a%20b">(λx.λy. y) a b</a> : Take second</li>
+<li><a href="#!/(%CE%BBx.x)%20((%CE%BBy.y)%20(%CE%BBz.z))">(λx.x) ((λy.y) (λz.z))</a> : Old alligator</li>
+
+<li><a href="#!/(%CE%BBx.x%20x)%20(%CE%BBx.x%20x)">(λx.x x) (λx.x x)</a> : Loop</li>
+<li><a href="#!/%CE%BBg.(%CE%BBx.g%20(x%20x))%20(%CE%BBx.g%20(x%20x))">λg.(λx.g (x x)) (λx.g (x x))</a> : Y combinator</li>
+<li><a href="#!/(%CE%BBm.%CE%BBn.%CE%BBs.%CE%BBz.(m%20s%20(n%20s%20z)))%20(%CE%BBs.%CE%BBz.(s%20z))%20(%CE%BBs.%CE%BBz.(s%20z))">(λm.λn.λs.λz.(m s (n s z))) (λs.λz.(s z)) (λs.λz.(s z))</a> : 1 + 1</li>
+<li><a href="#!/(%CE%BBm.%CE%BBn.%CE%BBs.%CE%BBz.(m%20s%20(n%20s%20z)))%20(%CE%BBs.%CE%BBz.(s%20(s%20(s%20z))))%20(%CE%BBs.%CE%BBz.(s%20(s%20(s%20(s%20z)))))">(λm.λn.λs.λz.(m s (n s z))) (λs.λz.(s (s (s z)))) (λs.λz.(s (s (s (s z)))))</a> : 3 + 4</li>
 
 </ul>
 
