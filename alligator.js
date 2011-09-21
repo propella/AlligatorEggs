@@ -42,7 +42,7 @@ function out(aString) {
 
 function showIt() {
   stop();
-
+  TheField = new Field();
   var expression = $("#exp").val();
   document.location.hash = "#!/" + encodeURIComponent(expression);
 
@@ -105,7 +105,8 @@ function showResult(term) {
   var view = termToView(term, []);
   TheShape = view;
   Shape.remove();
-  TheField = new Field(view);
+//  TheField = new Field(view);
+  TheField.replace(view);
   TheField.show();
 }
 

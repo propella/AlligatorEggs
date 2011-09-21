@@ -53,6 +53,17 @@ var Shape = {};
      AlligatorHeight = parseFloat($(AlligatorShape.parentNode.parentNode).attr("height"));
    }
 
+   function newText(x, y, string) {
+     var text = document.createElementNS($.svg.svgNS, "text");
+     text.setAttribute("x", x);
+     text.setAttribute("y", y);
+     text.setAttribute("class", "border");
+//     text.setAttribute("font-family", "Helvetica");
+     text.setAttribute("font-size", "40");
+     $(text).text(string);
+     return text;
+   }
+
    // ---------- Utilities ----------
 
    // Utility function to get a new identifier
@@ -113,10 +124,15 @@ var Shape = {};
      this.child = shape;
      this._width = parseFloat($(Stage.root()).attr("width"));
      this._height = parseFloat($(Stage.root()).attr("height"));
+     this._minWidth = 0;
+     this._minHeight = 0;
    }
 
    Field.prototype = $.extend({}, ShapeBase,
    {
+     replace: function(shape) {
+       this.child = shape;
+     },
      show: function() {
        this.construct();
        this.layout();
@@ -126,11 +142,17 @@ var Shape = {};
        this.child.construct();
      },
      layout: function() {
-       var scaleX = this.width() / this.child.width();
-       var scaleY = this.height() / this.child.height();
+       var childWidth = this.child.width();
+       var childHeight = this.child.height();
+       if (childWidth > this._minWidth || childHeight > this._minHeight) {
+         this._minWidth = childWidth;
+         this._minHeight = childHeight;
+       }
+       var scaleX = this.width() / this._minWidth;
+       var scaleY = this.height() / this._minHeight;
        var scaleXY = Math.min(scaleX, scaleY);
-       var offsetX = (this.width() - this.child.width() * scaleXY) / 2;
-       var offsetY = (this.height() - this.child.height() * scaleXY) / 2;
+       var offsetX = (this.width() - childWidth * scaleXY) / 2;
+       var offsetY = (this.height() - childHeight * scaleXY) / 2;
        $(this.child._shape).attr("transform", translate(offsetX, offsetY) + scale(scaleXY));
        this.child.layout();
      },
@@ -168,6 +190,8 @@ var Shape = {};
        var g = document.createElementNS($.svg.svgNS, "g");
        g.setAttribute("class", "shape");
        g.appendChild(eggShape);
+
+       eggShape.appendChild(newText(EggWidth / 2 - 10, EggHeight / 2 + 10, this.idx));
 
        this._shape = g;
        return g;
@@ -403,6 +427,7 @@ var Shape = {};
 
        g.appendChild(this._alligatorShape);
        g.appendChild(this.child.construct());
+       this._alligatorShape.appendChild(newText(50, 80, this.name));
 
        this._shape = g;
        this.constructDebugRect(g, "blue");
