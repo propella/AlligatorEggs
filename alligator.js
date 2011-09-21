@@ -49,6 +49,7 @@ function showIt() {
   TheTerm = parse(expression);
   if (!TheTerm) out("Syntax error");
   else showResult(TheTerm);
+  out(show(TheTerm, []));
   return false;
 }
 
