@@ -26,7 +26,7 @@
 // ---------- User Interface ----------
 
 var ResultTimeID = null;
-var AutoTimeID = null;
+var PlayTimeID = null;
 var TheTerm = null;
 var TheShape = null;
 
@@ -56,6 +56,7 @@ function showIt() {
 // One step animation.
 // Return true if there is more room to reduce.
 function next () {
+  stop();
   if (!TheTerm) return false;
   var view = TheShape;
   var app = findApp(TheTerm);
@@ -90,15 +91,15 @@ function next () {
   return true;
 }
 
-function auto () {
+function play () {
   var more = next();
   if (!more) return;
-  AutoTimeID = setTimeout(auto, 3000);
+  PlayTimeID = setTimeout(play, 3000);
 }
 
 function stop() {
   clearTimeout(ResultTimeID);
-  clearTimeout(AutoTimeID);
+  clearTimeout(PlayTimeID);
 }
 
 function showResult(term) {
@@ -110,7 +111,6 @@ function showResult(term) {
   TheField.show();
 }
 
-
 // ---------- Initialization ----------
 
 $(function() {
@@ -119,7 +119,7 @@ $(function() {
   $("#query").submit(showIt);
   $("#enter").click(showIt);
   $("#next").click(next);
-  $("#auto").click(auto);
+  $("#play").click(play);
   $("#stop").click(stop);
   initExp();
 //  runViewTest();
