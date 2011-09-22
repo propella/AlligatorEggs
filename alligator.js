@@ -55,7 +55,16 @@ function showIt() {
   if (!TheTerm) out("Syntax error");
   else showResult(TheTerm);
   out(show(TheTerm, []));
+
+  $("#iframesource").text(iframeSource(expression));
+
   return false;
+}
+
+function iframeSource(expression) {
+
+  var url = location.protocol + "//" + location.host + location.pathname + "iframe.html#!/" + encodeURIComponent(expression);
+  return '<iframe width="400" height="300" src="' + url + '" style="border: 0px solid #8c8;"></iframe>';
 }
 
 // One step animation.
