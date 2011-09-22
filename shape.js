@@ -122,8 +122,8 @@ var Shape = {};
    // Just for the background
    function Field(shape) {
      this.child = shape;
-     this._width = $(Stage.root()).width();
-     this._height = $(Stage.root()).height();
+     this._width = $(Stage.root().parentNode).width();
+     this._height = $(Stage.root().parentNode).height();
      this._minWidth = 0;
      this._minHeight = 0;
    }
@@ -494,8 +494,8 @@ var Shape = {};
    };
 
    function onclick (event) {
-     var x = (event.pageX - this.offsetLeft) * 4;
-     var y = (event.pageY - this.offsetTop) * 4;
+     var x = (event.pageX - this.parentNode.offsetLeft) * 4;
+     var y = (event.pageY - this.parentNode.offsetTop) * 4;
      var type = $("input[@name=type]:checked").val();
 
      switch(type) {
