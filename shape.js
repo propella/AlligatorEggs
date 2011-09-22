@@ -122,8 +122,8 @@ var Shape = {};
    // Just for the background
    function Field(shape) {
      this.child = shape;
-     this._width = parseFloat($(Stage.root()).attr("width"));
-     this._height = parseFloat($(Stage.root()).attr("height"));
+     this._width = $(Stage.root()).width();
+     this._height = $(Stage.root()).height();
      this._minWidth = 0;
      this._minHeight = 0;
    }

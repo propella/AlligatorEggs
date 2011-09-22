@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// ---------- User Interface ----------
+// ---------- Globals ----------
 
 var ResultTimeID = null;
 var PlayTimeID = null;
@@ -35,6 +35,10 @@ var Egg = Shape.Egg;
 var Eggs = Shape.Eggs;
 var Awake = Shape.Awake;
 
+var PlayState = "WAIT"; // "WAIT" | "PLAY" | "STOP"
+
+// ---------- User Interface ----------
+
 function out(aString) {
   var transcript = $("#transcript");
   transcript.text(transcript.text() + aString + "\r\n");
@@ -42,6 +46,7 @@ function out(aString) {
 
 function showIt() {
   stop();
+  PlayState = "WAIT";
   TheField = new Field();
   var expression = $("#exp").val();
   document.location.hash = "#!/" + encodeURIComponent(expression);
@@ -57,6 +62,10 @@ function showIt() {
 // Return true if there is more room to reduce.
 function next () {
   stop();
+  playOnce();
+}
+
+function playOnce() {
   if (!TheTerm) return false;
   var view = TheShape;
   var app = findApp(TheTerm);
@@ -91,13 +100,26 @@ function next () {
   return true;
 }
 
+// Do appropriate thing.
+function fire() {
+  if (PlayState == "WAIT") return play();
+  if (PlayState == "PLAY") return stop();
+  if (PlayState == "STOP") return play();
+  throw "Unknown play state";
+}
+
 function play () {
-  var more = next();
-  if (!more) return;
+  PlayState = "PLAY";
+  var more = playOnce();
+  if (!more) {
+    PlayState = "WAIT";
+    return;
+  }
   PlayTimeID = setTimeout(play, 3000);
 }
 
 function stop() {
+  PlayState = "STOP";
   clearTimeout(ResultTimeID);
   clearTimeout(PlayTimeID);
 }
@@ -121,6 +143,7 @@ $(function() {
   $("#next").click(next);
   $("#play").click(play);
   $("#stop").click(stop);
+  $("#stage").click(fire);
   initExp();
 //  runViewTest();
 });
@@ -131,6 +154,10 @@ function initExp() {
   $("#exp").val(query);
   setTimeout(showIt, 200); // for debug
 }
+
+function initIframe() {
+}
+
 
 window.onhashchange = initExp;
 

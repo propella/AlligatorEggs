@@ -25,6 +25,7 @@ term = app
 
 * todo
 
+todo: animation is broken when playing after stop
 todo: setTimeout chanin in alligator.js is too dirty.
 todo: performance (layout takes too much!)
 todo: Animates old alligators
