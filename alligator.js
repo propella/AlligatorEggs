@@ -63,7 +63,11 @@ function showIt() {
 
 function iframeSource(expression) {
 
-  var url = location.protocol + "//" + location.host + location.pathname + "iframe.html#!/" + encodeURIComponent(expression);
+  var url = location.protocol + "//" +
+    location.host +
+    location.pathname +
+    "iframe.html?width=400&height=300#!/" +
+    encodeURIComponent(expression);
   return '<iframe width="400" height="300" src="' + url + '" style="border: 0px solid #8c8;"></iframe>';
 }
 
@@ -111,7 +115,10 @@ function playOnce() {
 
 // Do appropriate thing.
 function fire() {
-  if (PlayState == "WAIT") return play();
+  if (PlayState == "WAIT") {
+    showIt();
+    return play();
+  }
   if (PlayState == "PLAY") return stop();
   if (PlayState == "STOP") return play();
   throw "Unknown play state";
@@ -145,15 +152,13 @@ function showResult(term) {
 // ---------- Initialization ----------
 
 $(function() {
-  Shape.init($("#stage"));
-//  $("#stage > svg").attr("viewBox", "0 0 1600 1200");
+  Shape.init($("#stage"), initExp);
   $("#query").submit(showIt);
   $("#enter").click(showIt);
   $("#next").click(next);
   $("#play").click(play);
   $("#stop").click(stop);
   $("#stage").click(fire);
-  initExp();
 //  runViewTest();
 });
 
@@ -161,12 +166,27 @@ function initExp() {
   var query= getQuery();
   if (query == "") return;
   $("#exp").val(query);
-  setTimeout(showIt, 200); // for debug
+  showIt();
 }
 
+// Initialize for iframe. It must be called before Shape.init
 function initIframe() {
+  var query = getQuery2();
+  $("#stage").width(query["width"]);
+  $("#stage").height(query["height"]);
 }
 
+// Convert CGI style query (?key=value&key=value...) to an object
+function getQuery2() {
+  var query = window.location.search.substring(1);
+  var each = query.split("&");
+  var result = {};
+  for (var i= 0; i < each.length; i++) {
+    var pair= each[i].split("=");
+    result[pair[0]] = decodeURIComponent(pair[1]);
+  }
+  return result;
+}
 
 window.onhashchange = initExp;
 

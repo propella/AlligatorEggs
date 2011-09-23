@@ -20,8 +20,9 @@ var Shape = {};
 
    // Initialize the state
    // @param stage (HTMLElement) An element which SVG is attached.
-   Shape.init = function (stage) {
-     stage.svg({ onLoad: function () { loadShapes(stage); } });
+   // @param callback (Function) is called when all SVG are ready.
+   Shape.init = function (stage, callback) {
+     stage.svg({ onLoad: function () { loadShapes(stage, callback); } });
    };
 
    // Remove all object on the stage
@@ -30,15 +31,33 @@ var Shape = {};
      return false;
    };
 
-   function loadShapes (stage) {
+   function loadShapes (stage, callback) {
      Stage = stage.svg('get');
      var defs = Stage.defs();
+     var alligatorDone = false;
+     var eggDone = false;
 
      var alligatorSVG = Stage.svg(defs);
-     Stage.load("open.svg", { parent: alligatorSVG, changeSize: true, onLoad: initAlligator });
+     Stage.load("open.svg", { parent: alligatorSVG, changeSize: true, onLoad:
+       function(wrapper) {
+         AlligatorShape = $("#alligator", Stage.root())[0];
+         AlligatorWidth = parseFloat($(AlligatorShape.parentNode.parentNode).attr("width"));
+         AlligatorHeight = parseFloat($(AlligatorShape.parentNode.parentNode).attr("height"));
+         alligatorDone = true;
+         if (eggDone && callback !== null) callback();
+       }
+     });
 
      var eggSVG = Stage.svg(defs);
-     Stage.load("egg.svg", { parent: eggSVG, changeSize: true, onLoad: initEgg });
+     Stage.load("egg.svg", { parent: eggSVG, changeSize: true, onLoad:
+       function(wrapper) {
+         EggShape = $("#egg", Stage.root())[0];
+         EggWidth = parseFloat($(EggShape.parentNode).attr("width"));
+         EggHeight = parseFloat($(EggShape.parentNode).attr("height"));
+         eggDone = true;
+         if (alligatorDone && callback !== null) callback();
+       }
+     });
    }
 
    function initEgg (wrapper) {
@@ -488,7 +507,7 @@ var Shape = {};
    // ---------- Test code for shape.html ----------
 
    Shape.demo = function () {
-     Shape.init($("#stage"));
+     Shape.init($("#stage"), null);
      $("#stage > svg").attr("viewBox", "0 0 1600 1200");
      $("#stage > svg").click(onclick);
    };
