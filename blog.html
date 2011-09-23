@@ -1,0 +1,131 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+</head>
+<body>
+<h1>Yet Another "Alligator Eggs!" Animation</h1>
+
+<p><a href="http://worrydream.com/">Bret Victor<a/> came to our office
+yesterday, and we had a great chat. He is a great thinker and has a
+beautiful sense about visualizing abstract ideas. I really like his
+works. I want to learn his idea more, but as a starter, I tried to
+implement his early
+famous <a href="http://worrydream.com/AlligatorEggs/">Alligator
+Eggs!</a> game. This game was made to teach about lambda calculus to
+eight years old kids. But it's even more fun to adult hackers!</p>
+
+<h4>Alligator and an egg : <a href="http://metatoys.org/alligator/#!/%CE%BBx.x">λx.x</a></h4>
+
+<iframe width="400" height="300" src="http://metatoys.org/alligator/iframe.html?width=400&height=300#!/%CE%BBx.x" style="border: 0px solid #8c8;"></iframe>
+
+<p>This is a green alligator and her egg. This family shows a lambda
+expression λx.x (because I know you are not an eight years old, I use
+formulas without hesitation!). There is a no animation as there is
+nothing to eat.
+</p>
+
+<h4>An alligator eats an egg : <a href="http://metatoys.org/alligator/#!/(%CE%BBx.x)%20y">(λx.x) y</a></h4>
+
+<iframe width="400" height="300" src="http://metatoys.org/alligator/iframe.html?width=400&height=300#!/(%CE%BBx.x)%20y" style="border: 0px solid #8c8;"></iframe>
+
+<p>But things are getting fun when there is something to eat before
+the alligator mother. In this case, a blue egg. If you click on the
+diagram, you see what's happening (I only tested Chrome, Safari, and
+Firefox). The alligator eats the poor blue egg. But price for the
+sacrifice is too high. The mother will die, and we will see the
+new baby.</p>
+
+<p>And then, things are getting curiouser. The new baby doesn't look
+like the mother at all, rather it is like a blue egg, the victim of
+the slaughter. What's a amazing nature of the lambda land!</p>
+
+<h4>Take first : <a href="http://metatoys.org/alligator/#!/(%CE%BBx.%CE%BBy.%20x)%20a%20b">(λx.λy. x) a b</a></h4>
+
+<iframe width="400" height="300" src="http://metatoys.org/alligator/iframe.html?width=400&height=300#!/(%CE%BBx.%CE%BBy.%20x)%20a%20b" style="border: 0px solid #8c8;"></iframe>
+
+<p>This is slightly a hard example. There are two alligators "x" and
+"y", and two victim eggs "a" and "b" on the right side. If there are
+more than two things next to an alligator, the alligator eats left one
+first (it is called as left associative in jargon). Can you guess what
+does happen after the meal? Alligator "x" eats egg "a", and alligator
+"y" eats egg "b". And only egg "a" survives (because it transmigrates
+through the green "x" egg).</p>
+
+<p>You can think that this alligator family (λx.λy. x) eats two
+things and leave the first one. In a same way, can you think of an
+alligator family which eats two things and leave the second one? Here
+is
+the <a href="http://metatoys.org/alligator/#!/(%CE%BBx.%CE%BBy.%20y)%20a%20b">answer</a>.</p>
+
+<h4>Old alligator : <a href="http://metatoys.org/alligator/#!/(%CE%BBx.x)%20((%CE%BBy.y)%20(%CE%BBz.z))">(λx.x) ((λy.y) (λz.z))</a></h4>
+
+<iframe width="400" height="300" src="http://metatoys.org/alligator/iframe.html?width=400&height=300#!/(%CE%BBx.x)%20((%CE%BBy.y)%20(%CE%BBz.z))" style="border: 0px solid #8c8;"></iframe>
+
+<p>There are a few things to know more. Old alligators are not
+hungry. But they keep guarding their family while they guard more than
+one things. They behave like parenthesis in a lambda expression.</p>
+
+<h4>Color rule : <a href="http://metatoys.org/alligator/#!/(%CE%BBx.%CE%BBy.x)%20(%CE%BBy.y)">(λx.λy.x) (λy.y)</a></h4>
+
+<iframe width="400" height="300" src="http://metatoys.org/alligator/iframe.html?width=400&height=300#!/(%CE%BBx.%CE%BBy.x)%20(%CE%BBy.y)" style="border: 0px solid #8c8;"></iframe>
+
+<p>This rule is the most tricky one. There are two blue alligators "y"
+at left and right, but those two are not in a same family. The only
+mother of the blue egg "y" is the right one. It gets trickier when the
+family is eaten by the green alligator because the blue family is
+reborn at the green egg is, where is bottom of another blue
+alligator. To make them different, the right blue family change the
+name and color to "y1" and orange.
+</p>
+
+<h4>Omega (Mockingbird hears the Mockingbird song) : <a href="http://metatoys.org/alligator/#!/(%CE%BBx.x%20x)%20(%CE%BBx.x%20x)">(λx.x x) (λx.x x)</a></h4>
+
+<iframe width="400" height="300" src="http://metatoys.org/alligator/iframe.html?width=400&height=300#!/(%CE%BBx.x%20x)%20(%CE%BBx.x%20x)" style="border: 0px solid #8c8;"></iframe>
+
+<p>By these rules, you can make various kinds of alligator
+ecosystem. This is my favorite one. (λx.x x) is called a
+"Mockingbird" or, rather we should call it Mockingalligator. It
+doubles its prey twice. So what happens if a mockingalligator eats a
+mockingalligator? The result is called one of omegas, an infinite
+loop. They are eating forever. To stop the endless violence, please
+click the diagram again. But please do not to click three times!
+Because of my bug, something wrong will be happening.</p>
+
+
+<h4>Y combinator : <a href="http://metatoys.org/alligator/#!/%CE%BBg.(%CE%BBx.g%20(x%20x))%20(%CE%BBx.g%20(x%20x))">λg.(λx.g (x x)) (λx.g (x x))</a></h4>
+
+<iframe width="400" height="300" src="http://metatoys.org/alligator/iframe.html?width=400&height=300#!/%CE%BBg.(%CE%BBx.g%20(x%20x))%20(%CE%BBx.g%20(x%20x))" style="border: 0px solid #8c8;"></iframe>
+
+<p>This is dangerous but beautiful one. The omega ecosystem above kills each
+other but it doesn't make any, but this Y combinator is very
+fertile. It produce many, so you have to watch it carefully, otherwise
+it consumes all the CPU power you have eventually!!
+</p>
+
+<h4>3 + 4 : <a href="http://metatoys.org/alligator/#!/(%CE%BBa.%CE%BBb.%CE%BBs.%CE%BBz.(a%20s%20(b%20s%20z)))%20(%CE%BBs.%CE%BBz.(s%20(s%20(s%20z))))%20(%CE%BBs.%CE%BBz.(s%20(s%20(s%20(s%20z)))))">(λa.λb.λs.λz.(a s (b s z))) (λs.λz.(s (s (s z)))) (λs.λz.(s (s (s (s z)))))</a></h4>
+
+<iframe width="400" height="300" src="http://metatoys.org/alligator/iframe.html?width=400&height=300#!/(%CE%BBa.%CE%BBb.%CE%BBs.%CE%BBz.(a%20s%20(b%20s%20z)))%20(%CE%BBs.%CE%BBz.(s%20(s%20(s%20z))))%20(%CE%BBs.%CE%BBz.(s%20(s%20(s%20(s%20z)))))" style="border: 0px solid #8c8;"></iframe>
+
+<p>Actually, alligators also can do serious jobs. If you design
+carefully, you can teach them how to calculate 3 + 4! In this example,
+the middle family represents three and the right family represents
+four (count green eggs). And the result is a family with seven green
+eggs! This is
+called <a href="http://en.wikipedia.org/wiki/Church_encoding">Church
+numbers</a> (I don't have a time to explain the theory, so please read
+the link).
+</p>
+
+
+<p>I only introduced very few alligator families. If you want play it,
+visit
+<a href="http://metatoys.org/alligator/">http://metatoys.org/alligator/</a>
+and design by your self. You can also download from
+<a href="http://github.com/propella/AlligatorEggs">http://github.com/propella/AlligatorEggs</a>. The
+source code is messy because I haven't written javascript recently,
+but I'll clean it up soon.
+
+</p>
+
+</body>
+</html>
