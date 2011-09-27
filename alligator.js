@@ -158,7 +158,9 @@ function iframeSource(expression) {
 
 function gadgetSource(expression) {
   var exp = encodeURIComponent(expression);
-  return "<script src=\"http://www.gmodules.com/ig/ifr?url=http://metatoys.org/alligator/gadget.xml&amp;up_Expression=" + exp + "&amp;synd=open&amp;w=400&amp;h=300&amp;output=js\"></script>";
+  return "<script src=\"http://www.gmodules.com/ig/ifr?url=http://metatoys.org/alligator/gadget.xml&amp;up_Expression=" + exp + "&amp;synd=open&amp;w=320&amp;h=200&amp;title=" + exp + "&amp;border=%23ffffff%7C3px%2C1px+solid+%23999999&amp;output=js\"></script>";
+
+
 }
 
 // ---------- Initialization ----------
