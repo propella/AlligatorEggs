@@ -21,8 +21,8 @@ var Shape = {};
    // Initialize the state
    // @param stage (HTMLElement) An element which SVG is attached.
    // @param callback (Function) is called when all SVG are ready.
-   Shape.init = function (stage, callback) {
-     stage.svg({ onLoad: function () { loadShapes(stage, callback); } });
+   Shape.init = function (stage, callback, eggUrl, alligatorUrl) {
+     stage.svg({ onLoad: function () { loadShapes(stage, eggUrl, alligatorUrl, callback); } });
    };
 
    // Remove all object on the stage
@@ -31,14 +31,16 @@ var Shape = {};
      return false;
    };
 
-   function loadShapes (stage, callback) {
+   function loadShapes (stage, eggUrl, alligatorUrl, callback) {
      Stage = stage.svg('get');
      var defs = Stage.defs();
      var alligatorDone = false;
      var eggDone = false;
+     var eggUrl1 = eggUrl || "egg.svg";
+     var alligatorUrl1 = alligatorUrl || "open.svg";
 
      var alligatorSVG = Stage.svg(defs);
-     Stage.load("open.svg", { parent: alligatorSVG, changeSize: true, onLoad:
+     Stage.load(alligatorUrl1, { parent: alligatorSVG, changeSize: true, onLoad:
        function(wrapper) {
          AlligatorShape = $("#alligator", Stage.root())[0];
          AlligatorWidth = parseFloat($(AlligatorShape.parentNode.parentNode).attr("width"));
@@ -49,7 +51,7 @@ var Shape = {};
      });
 
      var eggSVG = Stage.svg(defs);
-     Stage.load("egg.svg", { parent: eggSVG, changeSize: true, onLoad:
+     Stage.load(eggUrl1, { parent: eggSVG, changeSize: true, onLoad:
        function(wrapper) {
          EggShape = $("#egg", Stage.root())[0];
          EggWidth = parseFloat($(EggShape.parentNode).attr("width"));
@@ -506,8 +508,8 @@ var Shape = {};
 
    // ---------- Test code for shape.html ----------
 
-   Shape.demo = function () {
-     Shape.init($("#stage"), null);
+   Shape.demo = function (eggUrl, alligatorUrl) {
+     Shape.init($("#stage"), null, eggUrl, alligatorUrl);
      $("#stage > svg").attr("viewBox", "0 0 1600 1200");
      $("#stage > svg").click(onclick);
    };
@@ -516,6 +518,7 @@ var Shape = {};
      var x = (event.pageX - this.parentNode.offsetLeft) * 4;
      var y = (event.pageY - this.parentNode.offsetTop) * 4;
      var type = $("input[@name=type]:checked").val();
+     console.log(["onclick:", x, y]);
 
      switch(type) {
      case "awake":
@@ -527,23 +530,26 @@ var Shape = {};
      case "egg":
        showEgg(x, y);
        break;
+     default:
+       showAwake(x, y);
      }
    }
 
    function showEgg (x, y) {
-     var name = $("#varname").val();
-     (new Egg(name)).show(x, y);
+     (new Egg(getVarName())).show(x, y);
    }
 
    function showSleep (x, y) {
-     var name = $("#varname").val();
-     (new Eggs([new Egg(name), new Eggs([new Egg(name), new Egg(name)])])).show(x, y);
+     (new Eggs([new Egg(getVarName()), new Eggs([new Egg(getVarName()), new Egg(getVarName())])])).show(x, y);
    }
 
    function showAwake (x, y) {
-     var name = $("#varname").val();
-     (new Awake(name, new Egg("y"))).show(x, y).animate();
+     (new Awake(getVarName(), new Egg("y"))).show(x, y).animate();
      return;
+   }
+
+   function getVarName() {
+     return $("#varname").val() || "x";
    }
 
 }) ();

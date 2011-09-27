@@ -1011,7 +1011,7 @@ jQuery.extend({
 				elem.parentNode.selectedIndex;
 
 			// If applicable, access the attribute via the DOM 0 way
-			if ( name in elem && notxml && !special ) {
+			if ( false ) { // !!! dirty hack to allow $(SVGElement).attr(key,val)
 				if ( set ){
 					// We can't allow the type property to be changed (since it causes problems in IE)
 					if ( name == "type" && jQuery.nodeName( elem, "input" ) && elem.parentNode )

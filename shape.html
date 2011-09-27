@@ -8,7 +8,7 @@
   <meta name="generator" content=
   "HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 15.3.6), see www.w3.org" />
 
-  <title>test</title>
+  <title>JQuery SVG animation test</title>
   <style type="text/css">
   #stage { width: 400px; height: 300px; border: 2px solid #484; }
   </style>
@@ -17,9 +17,6 @@
   <script type="text/javascript" src="jquery.svg.js"></script>
   <script type="text/javascript" src="jquery.svganim.js"></script>
   <script type="text/javascript" src="shape.js"></script>
-  <script type="text/javascript">
-  $(Shape.demo);
-  </script>
 </head>
 
 <body>
@@ -34,5 +31,10 @@
     <label><input type="radio" name="type" value="sleep" /> Sleep</label> 
     <label><input type="radio" name="type" value="egg" /> Egg</label>
   </form>
+
+  <script type="text/javascript">
+  Shape.demo("egg.svg", "open.svg");
+  </script>
+
 </body>
 </html>

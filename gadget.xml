@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<Module>
+  <ModulePrefs title="Alligator Eggs!" /> 
+  <Content type="html">
+     <![CDATA[ 
+<style type="text/css">
+#stage {
+  width: 400px;
+  height: 300px;
+  border: 1px solid #484;
+  margin: 1em 0em 1em 0em;
+}
+
+</style>
+
+<script type="text/javascript" src="http://metatoys.org/alligator/opensocial-jquery.js"></script>
+<script type="text/javascript" src="http://metatoys.org/alligator/jquery.svg.js"></script>
+<script type="text/javascript" src="http://metatoys.org/alligator/jquery.svganim.js"></script>
+<script type="text/javascript" src="http://metatoys.org/alligator/lambda.js"></script>
+<script type="text/javascript" src="http://metatoys.org/alligator/shape.js"></script>
+<!-- script type="text/javascript" src="http://metatoys.org/alligator/alligator.js"></script -->
+
+<body>
+<!-- form action=""><input class="dummy" id="exp" value="(λx.x x) (λx.x x)"/></form -->
+
+Alligator eggs!
+
+  <div id="stage"></div>
+
+  <script type="text/javascript">
+  Shape.demo("http://metatoys.org/alligator/egg.svg", "http://metatoys.org/alligator/open.svg");
+  </script>
+
+     ]]>
+  </Content> 
+</Module>
