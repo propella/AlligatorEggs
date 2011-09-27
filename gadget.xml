@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?> 
 <Module>
-  <ModulePrefs title="Alligator Eggs!" /> 
+  <ModulePrefs
+      title="Alligator Eggs!"
+      author="Takashi Yamamiya"
+      title_url="http://metatoys.org/alligator/"
+      screenshot="http://metatoys.org/alligator/omega.png" />
+  <UserPref name="Expression" display_name="Expression" default_value="(λx.x x) (λx.x x)" required="true" />
   <Content type="html">
      <![CDATA[ 
 <style type="text/css">
 #stage {
-  width: 400px;
-  height: 300px;
-  border: 1px solid #484;
-  margin: 1em 0em 1em 0em;
+  margin: 0;
+  cursor: pointer;
+  overflow: hidden;
 }
 
 </style>
@@ -18,19 +22,11 @@
 <script type="text/javascript" src="http://metatoys.org/alligator/jquery.svganim.js"></script>
 <script type="text/javascript" src="http://metatoys.org/alligator/lambda.js"></script>
 <script type="text/javascript" src="http://metatoys.org/alligator/shape.js"></script>
-<!-- script type="text/javascript" src="http://metatoys.org/alligator/alligator.js"></script -->
-
-<body>
-<!-- form action=""><input class="dummy" id="exp" value="(λx.x x) (λx.x x)"/></form -->
-
-Alligator eggs!
-
-  <div id="stage"></div>
-
-  <script type="text/javascript">
-  Shape.demo("http://metatoys.org/alligator/egg.svg", "http://metatoys.org/alligator/open.svg");
-  </script>
-
+<script type="text/javascript" src="http://metatoys.org/alligator/alligator.js"></script>
+<body id="stage">
+<script type="text/javascript">
+initGadget();
+</script>
      ]]>
   </Content> 
 </Module>

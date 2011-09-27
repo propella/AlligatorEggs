@@ -501,10 +501,85 @@ var Shape = {};
      }
    });
 
+   // ---------- Convert from Term ----------
+
+   function fromTerm(term, ctx) {
+     switch (term[0]) {
+     case Var:
+     if (typeof term[1] == "number" && term[1] < ctx.length) return new Egg(ctx[term[1]], term);
+       if (typeof term[1] == "number") return new Egg("?" + term[1], term);
+       return new Egg(term[1], term);
+     case Abs:
+       var pair = pickFreshName(ctx, term[1]);
+       return new Awake(pair[1], fromTerm(term[2], pair[0]), term);
+     case App:
+       return termToEggs(term, ctx);
+     }
+     throw	"unknown tag:" + term[0];
+   }
+
+   function termToEggs(term, ctx) {
+     switch (term[0]) {
+     case Var:
+       case Abs:
+         return new Eggs([fromTerm(term, ctx)], term);
+     case App:
+       var t1 = term[1];
+       var t2 = term[2];
+       var show1 = termToEggs(t1, ctx);
+       var show2 = fromTerm(t2, ctx);
+       var thisTerm = show1.term[0] == App ? t1 : term; // fix me
+       return new Eggs(show1.children.concat(show2), thisTerm);
+     }
+     throw	"unknown tag:" + term[0];
+   }
+
+   function runtest() {
+     out("-- fromTerm test --");
+     var t;
+     t = parseTerm("x",["x"])[1];
+     testEq(fromTerm(t, ["x"]), new Egg("x", t));
+
+     t = parse("x");
+     testEq(fromTerm(t, []), new Egg("x", t));
+
+     testEq(fromTerm(parse("λx.x"),[]).toString(), "Awake(x,Egg(x))");
+
+     t = parse("x y");
+     testEq(fromTerm(t,[]).toString(), "Eggs[Egg(x),Egg(y)]");
+     testEq(fromTerm(t,[]).term, t);
+     testEq(fromTerm(t,[]).children[0].term, [Var, "x"]);
+     testEq(fromTerm(t,[]).children[1].term, [Var, "y"]);
+
+     t = parse("x x x");
+     testEq(fromTerm(t,[]).toString(), "Eggs[Egg(x),Egg(x),Egg(x)]");
+     testEq(fromTerm(t,[]).term, parse("x x"));
+
+     testEq(fromTerm(parse("x (x x)"),[]).toString(), "Eggs[Egg(x),Eggs[Egg(x),Egg(x)]]");
+
+     testEq(fromTerm(parse("(x x) (x x)"),[]).toString(),
+     "Eggs[Egg(x),Egg(x),Eggs[Egg(x),Egg(x)]]");
+
+     t = parse("λx.x");
+     testEq(fromTerm(t,[]).toString(), "Awake(x,Egg(x))");
+     testEq(fromTerm(t,[]).term, t);
+     testEq(fromTerm(t,[]).child.term, [Var, 0]);
+
+     testEq(fromTerm(parse("λx.x x"),[]).toString(),
+     "Awake(x,Eggs[Egg(x),Egg(x)])");
+
+     testEq(fromTerm(parse("(λx.x) x"),[]).toString(),
+     "Eggs[Awake(x,Egg(x)),Egg(x)]");
+   }
+
    Shape.Field = Field;
    Shape.Egg = Egg;
    Shape.Eggs = Eggs;
    Shape.Awake = Awake;
+
+   Shape.fromTerm = fromTerm;
+   Shape.runtest = runtest;
+
 
    // ---------- Test code for shape.html ----------
 

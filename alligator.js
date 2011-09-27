@@ -34,41 +34,26 @@ var Field = Shape.Field;
 var Egg = Shape.Egg;
 var Eggs = Shape.Eggs;
 var Awake = Shape.Awake;
+var InputSource = function() { return $("#exp").val(); };
 
 var PlayState = "WAIT"; // "WAIT" | "PLAY" | "STOP"
 
-// ---------- User Interface ----------
+// ---------- Transcript ----------
 
 function out(aString) {
   var transcript = $("#transcript");
   transcript.text(transcript.text() + aString + "\r\n");
 }
 
+// ---------- Alligator State Machine Commands ----------
+
+// Show initial state
 function showIt() {
   stop();
   PlayState = "WAIT";
   TheField = new Field();
-  var expression = $("#exp").val();
-  document.location.hash = "#!/" + encodeURIComponent(expression);
-
-  TheTerm = parse(expression);
-  if (!TheTerm) out("Syntax error");
-  else showResult(TheTerm);
-  out(show(TheTerm, []));
-
-  $("#iframesource").text(iframeSource(expression));
-
+  showExpression(InputSource());
   return false;
-}
-
-function iframeSource(expression) {
-
-  var url = location.protocol + "//" +
-    location.host +
-    location.pathname +
-    "iframe.html?width=400&height=300#!/" +
-    encodeURIComponent(expression);
-  return '<iframe width="400" height="300" src="' + url + '" style="border: 0px solid #8c8;"></iframe>';
 }
 
 // One step animation.
@@ -140,18 +125,46 @@ function stop() {
   clearTimeout(PlayTimeID);
 }
 
+// ---------- Output ----------
+
+// Show Alligators and others
+function showExpression(string) {
+  TheTerm = parse(string);
+  if (!TheTerm) out("Syntax error");
+  else showResult(TheTerm);
+  out(show(TheTerm, []));
+  document.location.hash = "#!/" + encodeURIComponent(string);
+  $("#iframesource").text(iframeSource(string));
+  $("#gadgetsource").text(gadgetSource(string));
+}
+
+// Show Alligators
 function showResult(term) {
-  var view = termToView(term, []);
+  var view = Shape.fromTerm(term, []);
   TheShape = view;
   Shape.remove();
-//  TheField = new Field(view);
   TheField.replace(view);
   TheField.show();
 }
 
+function iframeSource(expression) {
+  var url = location.protocol + "//" +
+    location.host +
+    location.pathname +
+    "iframe.html?width=400&height=300#!/" +
+    encodeURIComponent(expression);
+  return '<iframe width="400" height="300" src="' + url + '" style="border: 0px solid #8c8;"></iframe>';
+}
+
+function gadgetSource(expression) {
+  var exp = encodeURIComponent(expression);
+  return "<script src=\"http://www.gmodules.com/ig/ifr?url=http://metatoys.org/alligator/gadget.xml&amp;up_Expression=" + exp + "&amp;synd=open&amp;w=400&amp;h=300&amp;output=js\"></script>";
+}
+
 // ---------- Initialization ----------
 
-$(function() {
+// Initialize for the main user interface
+function initUI() {
   Shape.init($("#stage"), initExp);
   $("#query").submit(showIt);
   $("#enter").click(showIt);
@@ -159,9 +172,30 @@ $(function() {
   $("#play").click(play);
   $("#stop").click(stop);
   $("#stage").click(fire);
-//  runViewTest();
-});
+  window.onhashchange = initExp;
+  // Shape.runtest();
+}
 
+// Initialize for the iframe interface.
+function initIframe() {
+  var query = getCGIQuery();
+  $("#stage").width(query["width"]);
+  $("#stage").height(query["height"]);
+  $("#stage").click(fire);
+  window.onhashchange = showIt;
+  InputSource = function() { return getQuery(); };
+  Shape.init($("#stage"), showIt);
+}
+
+function initGadget() {
+  $("#stage").click(fire);
+  InputSource = function() { return $.pref("Expression"); };
+  Shape.init($("#stage"), showIt, "http://metatoys.org/alligator/egg.svg", "http://metatoys.org/alligator/open.svg");
+
+//    Shape.demo("http://metatoys.org/alligator/egg.svg", "http://metatoys.org/alligator/open.svg");
+}
+
+// Read from the hash bang string.
 function initExp() {
   var query= getQuery();
   if (query == "") return;
@@ -169,15 +203,8 @@ function initExp() {
   showIt();
 }
 
-// Initialize for iframe. It must be called before Shape.init
-function initIframe() {
-  var query = getQuery2();
-  $("#stage").width(query["width"]);
-  $("#stage").height(query["height"]);
-}
-
 // Convert CGI style query (?key=value&key=value...) to an object
-function getQuery2() {
+function getCGIQuery() {
   var query = window.location.search.substring(1);
   var each = query.split("&");
   var result = {};
@@ -188,76 +215,3 @@ function getQuery2() {
   return result;
 }
 
-window.onhashchange = initExp;
-
-// ---------- View Data Structures ----------
-
-function termToView(term, ctx) {
-  switch (term[0]) {
-  case Var:
-    if (typeof term[1] == "number" && term[1] < ctx.length) return new Egg(ctx[term[1]], term);
-    if (typeof term[1] == "number") return new Egg("?" + term[1], term);
-    return new Egg(term[1], term);
-  case Abs:
-    var pair = pickFreshName(ctx, term[1]);
-    return new Awake(pair[1], termToView(term[2], pair[0]), term);
-  case App:
-    return termToEggs(term, ctx);
-  }
-  throw	"unknown tag:" + term[0];
-}
-
-function termToEggs(term, ctx) {
-  switch (term[0]) {
-  case Var:
-  case Abs:
-    return new Eggs([termToView(term, ctx)], term);
-  case App:
-    var t1 = term[1];
-    var t2 = term[2];
-    var show1 = termToEggs(t1, ctx);
-    var show2 = termToView(t2, ctx);
-    var thisTerm = show1.term[0] == App ? t1 : term; // fix me
-    return new Eggs(show1.children.concat(show2), thisTerm);
-  }
-  throw	"unknown tag:" + term[0];
-}
-
-
-function runViewTest() {
-  out("-- termToView test --");
-  var t;
-  t = parseTerm("x",["x"])[1];
-  testEq(termToView(t, ["x"]), new Egg("x", t));
-
-  t = parse("x");
-  testEq(termToView(t, []), new Egg("x", t));
-
-  testEq(termToView(parse("λx.x"),[]).toString(), "Awake(x,Egg(x))");
-
-  t = parse("x y");
-  testEq(termToView(t,[]).toString(), "Eggs[Egg(x),Egg(y)]");
-  testEq(termToView(t,[]).term, t);
-  testEq(termToView(t,[]).children[0].term, [Var, "x"]);
-  testEq(termToView(t,[]).children[1].term, [Var, "y"]);
-
-  t = parse("x x x");
-  testEq(termToView(t,[]).toString(), "Eggs[Egg(x),Egg(x),Egg(x)]");
-  testEq(termToView(t,[]).term, parse("x x"));
-
-  testEq(termToView(parse("x (x x)"),[]).toString(), "Eggs[Egg(x),Eggs[Egg(x),Egg(x)]]");
-
-  testEq(termToView(parse("(x x) (x x)"),[]).toString(),
-         "Eggs[Egg(x),Egg(x),Eggs[Egg(x),Egg(x)]]");
-
-  t = parse("λx.x");
-  testEq(termToView(t,[]).toString(), "Awake(x,Egg(x))");
-  testEq(termToView(t,[]).term, t);
-  testEq(termToView(t,[]).child.term, [Var, 0]);
-
-  testEq(termToView(parse("λx.x x"),[]).toString(),
-         "Awake(x,Eggs[Egg(x),Egg(x)])");
-
-  testEq(termToView(parse("(λx.x) x"),[]).toString(),
-         "Eggs[Awake(x,Egg(x)),Egg(x)]");
-}
