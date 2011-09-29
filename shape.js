@@ -42,7 +42,7 @@ var Shape = {};
      var alligatorSVG = Stage.svg(defs);
      Stage.load(alligatorUrl1, { parent: alligatorSVG, changeSize: true, onLoad:
        function(wrapper) {
-         AlligatorShape = $("#alligator", Stage.root())[0];
+         AlligatorShape = $("#alligator")[0];
          AlligatorWidth = parseFloat($(AlligatorShape.parentNode.parentNode).attr("width"));
          AlligatorHeight = parseFloat($(AlligatorShape.parentNode.parentNode).attr("height"));
          alligatorDone = true;
@@ -53,25 +53,13 @@ var Shape = {};
      var eggSVG = Stage.svg(defs);
      Stage.load(eggUrl1, { parent: eggSVG, changeSize: true, onLoad:
        function(wrapper) {
-         EggShape = $("#egg", Stage.root())[0];
+         EggShape = $("#egg")[0];
          EggWidth = parseFloat($(EggShape.parentNode).attr("width"));
          EggHeight = parseFloat($(EggShape.parentNode).attr("height"));
          eggDone = true;
          if (alligatorDone && callback !== null) callback();
        }
      });
-   }
-
-   function initEgg (wrapper) {
-     EggShape = $("#egg", Stage.root())[0];
-     EggWidth = parseFloat($(EggShape.parentNode).attr("width"));
-     EggHeight = parseFloat($(EggShape.parentNode).attr("height"));
-   }
-
-   function initAlligator (wrapper) {
-     AlligatorShape = $("#alligator", Stage.root())[0];
-     AlligatorWidth = parseFloat($(AlligatorShape.parentNode.parentNode).attr("width"));
-     AlligatorHeight = parseFloat($(AlligatorShape.parentNode.parentNode).attr("height"));
    }
 
    function newText(x, y, string) {
@@ -232,9 +220,8 @@ var Shape = {};
      height: function () {
        return this._newborn ? Math.max(EggHeight, this.newbornHeight()) : EggHeight;
      },
-     animateHatch: function(arg, step) {
+     animateHatch: function(arg, field, complete) {
        var shape = arg._shape.cloneNode(true);
-
        $(shape).attr("visibility", "visible");
        $(shape).attr("transform", translate(EggWidth / 2, EggHeight / 2) + scale(0));
        this._shape.appendChild(shape);
@@ -242,9 +229,13 @@ var Shape = {};
        $(shape).animate({svgTransform: translate(0, 0) + scale(1)},
                                 {duration: 1000,
                                 step: function(now, fx) {
-                                    self._animationPos = fx.pos;
-                                    step();
-                                    }
+                                  self._animationPos = fx.pos;
+                                  field.layout();
+                                },
+                                complete: function() {
+                                  if (!complete._hatchComplete) complete();
+                                  complete._hatchComplete = true;
+                                }
                                 });
 
        this._newborn = $.extend({}, arg); // Copy original
@@ -360,7 +351,7 @@ var Shape = {};
      height: function () {
        return this.underOld() ? AlligatorHeight + this.childHeight() : this.childHeight();
      },
-     animateEat: function(step, callback) {
+     animateEat: function(field, complete) {
        var func = this.children[0];
        var arg = this.children[1];
 
@@ -376,22 +367,25 @@ var Shape = {};
        face.attr("transform", "rotate(35, 200, 100)");
        face.animate({svgTransform: "rotate(-35, 200, 100)"});
 
-
        $(alias).animate({svgTransform: translate(x, y) + scale(0)},
                         {duration: 1000,
-                         step: step,
-                         complete: callback
+                         step: function(now, fx) {
+                           self._animationPos = fx.pos;
+                           field.layout();
+                         },
+                         complete: complete
                         });
      },
-     animateHatch: function(step) {
+     animateHatch: function(field, complete) {
+       complete._hatchComplete = false;
        var func = this.children[0];
        var arg = this.children[1];
        var vars = findSbst(this.term[1], -1);
        var eggs = vars.map(function(each) { return func.findTerm(each); });
-       $.each(eggs, function(i, egg) { egg.animateHatch(arg, step); });
+       $.each(eggs, function(i, egg) { egg.animateHatch(arg, field, complete); });
      },
-     animateDead: function(step) {
-       this.children[0].animateDead(step);
+     animateDead: function(field, complete) {
+       this.children[0].animateDead(field, complete);
      }
    });
 
@@ -469,9 +463,7 @@ var Shape = {};
      width: function () { return Math.max(this.alligatorWidth(), this.child.width()); },
      height: function () { return this.alligatorHeight() + this.child.height(); },
 
-     animateDead: function(step) {
-       var cx = 228;
-       var cy = 70;
+     animateDead: function(field, complete) {
        var cx = 300;
        var cy = 300;
        var rotate0 = "rotate(0, " + cx + "," + cy + ")";
@@ -492,10 +484,11 @@ var Shape = {};
                               {duration: 1000,
                                step: function(now, fx) {
                                  self._animationPos = fx.pos;
-                                 step();
+                                 field.layout();
                                },
                                complete: function() {
                                  $(self._alligatorShape).attr("visibility", "hidden");
+                                 if (complete) complete();
                                }
                               });
      }

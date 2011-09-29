@@ -25,18 +25,10 @@
 
 // ---------- Globals ----------
 
-var ResultTimeID = null;
-var PlayTimeID = null;
-var TheTerm = null;
-var TheShape = null;
-
 var Field = Shape.Field;
 var Egg = Shape.Egg;
 var Eggs = Shape.Eggs;
 var Awake = Shape.Awake;
-var InputSource = function() { return $("#exp").val(); };
-
-var PlayState = "WAIT"; // "WAIT" | "PLAY" | "STOP"
 
 // ---------- Transcript ----------
 
@@ -45,107 +37,110 @@ function out(aString) {
   transcript.text(transcript.text() + aString + "\r\n");
 }
 
-// ---------- Alligator State Machine Commands ----------
+// ---------- Alligator State Machine ----------
 
-// Show initial state
-function showIt() {
-  stop();
-  PlayState = "WAIT";
-  TheField = new Field();
-  showExpression(InputSource());
-  return false;
+// @param input (Function) A function which returns a new input.
+function Calculator(input) {
+  this.state = "WAIT"; // Animation state, "WAIT" | "PLAY" | "STOP"
+  this.inputSource = input;
+  this.theField = new Field();
+  this.theTerm = null;
+  this.theShape = null;
+  this.playTimeID = null; // A timer to trigger the next iteration
 }
 
-// One step animation.
-// Return true if there is more room to reduce.
-function next () {
-  stop();
-  playOnce();
-}
+Calculator.prototype =
+{
+  showIt: function() {
+    this.stop();
+    this.state = "WAIT";
+    this.showExpression(this.inputSource());
+    return false;
+  },
 
-function playOnce() {
-  if (!TheTerm) return false;
-  var view = TheShape;
-  var app = findApp(TheTerm);
+  // One step animation.
+  // Return true if there is more room to reduce.
+  next: function() {
+    this.stop();
+    this.playOnce();
+  },
 
-  var appliedShape = view.findTerm(app);
-  if (!appliedShape) return false;
+  playOnce: function() {
+    if (!this.theTerm) return false;
+    var self = this;
+    var view = this.theShape;
+    var app = findApp(this.theTerm);
 
-  var newTerm = eval1(TheTerm);
-  if (!newTerm) return false;
+    var appliedShape = view.findTerm(app);
+    if (!appliedShape) return false;
 
-  appliedShape.animateEat(
-    function(now, fx) {
-      appliedShape._animationPos = fx.pos;
-      TheField.layout();
-    },
-    function() {
-    });
+    var newTerm = eval1(this.theTerm);
+    if (!newTerm) return false;
 
-  setTimeout(function() {
-    appliedShape.animateDead(function() { TheField.layout(); });
-  }, 1000);
+    appliedShape.animateEat(this.theField,
+      function() { appliedShape.animateDead(self.theField,
+        function() { appliedShape.animateHatch(self.theField,
+          function() {
+            out(show(newTerm, []));
+            self.theTerm = newTerm;
+            if (self.theTerm) self.showResult(self.theTerm);
+          });
+        });
+      });
 
-  setTimeout(function() {
-    appliedShape.animateHatch(function() { TheField.layout(); });
-  }, 2000);
+    return true;
+  },
 
-  ResultTimeID = setTimeout(function() {
-    out(show(newTerm, []));
-    TheTerm = newTerm;
-    if (TheTerm) showResult(TheTerm);
-  }, 3000);
-  return true;
-}
+  // Do appropriate thing.
+  fire: function() {
+    if (this.state == "WAIT") {
+      this.showIt();
+      return this.play();
+    }
+    if (this.state == "PLAY") return this.stop();
+    if (this.state == "STOP") return this.play();
+    throw "Unknown play state";
+  },
 
-// Do appropriate thing.
-function fire() {
-  if (PlayState == "WAIT") {
-    showIt();
-    return play();
+  play: function() {
+    this.stop();
+    this.state = "PLAY";
+    var more = this.playOnce();
+    if (!more) {
+      this.state = "WAIT";
+      return;
+    }
+    var self = this;
+    this.playTimeID = setTimeout(function() { self.play(); }, 3500);
+  },
+
+  stop: function() {
+    this.state = "STOP";
+    clearTimeout(this.playTimeID);
+  },
+
+  // Show Alligators and others
+  showExpression: function (string) {
+    this.theTerm = parse(string);
+    if (!this.theTerm) out("Syntax error");
+    else this.showResult(this.theTerm);
+    out(show(this.theTerm, []));
+    document.location.hash = "#!/" + encodeURIComponent(string);
+    $("#iframesource").text(iframeSource(string));
+    $("#gadgetsource").text(gadgetSource(string));
+  },
+
+  // Show Alligators
+  showResult: function(term) {
+    var view = Shape.fromTerm(term, []);
+    this.theShape = view;
+    Shape.remove();
+    this.theField.replace(view);
+    this.theField.show();
   }
-  if (PlayState == "PLAY") return stop();
-  if (PlayState == "STOP") return play();
-  throw "Unknown play state";
-}
+};
 
-function play () {
-  PlayState = "PLAY";
-  var more = playOnce();
-  if (!more) {
-    PlayState = "WAIT";
-    return;
-  }
-  PlayTimeID = setTimeout(play, 3000);
-}
-
-function stop() {
-  PlayState = "STOP";
-  clearTimeout(ResultTimeID);
-  clearTimeout(PlayTimeID);
-}
-
-// ---------- Output ----------
-
-// Show Alligators and others
-function showExpression(string) {
-  TheTerm = parse(string);
-  if (!TheTerm) out("Syntax error");
-  else showResult(TheTerm);
-  out(show(TheTerm, []));
-  document.location.hash = "#!/" + encodeURIComponent(string);
-  $("#iframesource").text(iframeSource(string));
-  $("#gadgetsource").text(gadgetSource(string));
-}
-
-// Show Alligators
-function showResult(term) {
-  var view = Shape.fromTerm(term, []);
-  TheShape = view;
-  Shape.remove();
-  TheField.replace(view);
-  TheField.show();
-}
+// ---------- Snippets source code ----------
 
 function iframeSource(expression) {
   var url = location.protocol + "//" +
@@ -159,12 +154,35 @@ function iframeSource(expression) {
 function gadgetSource(expression) {
   var exp = encodeURIComponent(expression);
   return "<script src=\"http://www.gmodules.com/ig/ifr?url=http://metatoys.org/alligator/gadget.xml&amp;up_Expression=" + exp + "&amp;synd=open&amp;w=320&amp;h=200&amp;title=" + exp + "&amp;border=%23ffffff%7C3px%2C1px+solid+%23999999&amp;output=js\"></script>";
+}
 
+// ---------- Event Handlers ----------
 
+var TheCalclator = null;
+
+function showIt() {
+  return TheCalclator.showIt();
+}
+
+function next() {
+  return TheCalclator.next();
+}
+
+function play() {
+  return TheCalclator.play();
+}
+
+function stop() {
+  return TheCalclator.stop();
+}
+
+function fire() {
+  return TheCalclator.fire();
 }
 
 // ---------- Initialization ----------
 
+// Entry point of index.html
 // Initialize for the main user interface
 function initUI() {
   Shape.init($("#stage"), initExp);
@@ -180,21 +198,22 @@ function initUI() {
 
 // Initialize for the iframe interface.
 function initIframe() {
+  Shape.init($("#stage"), showIt);
   var query = getCGIQuery();
   $("#stage").width(query["width"]);
   $("#stage").height(query["height"]);
   $("#stage").click(fire);
   window.onhashchange = showIt;
-  InputSource = function() { return getQuery(); };
-  Shape.init($("#stage"), showIt);
+  TheCalclator = new Calculator(function() { return getQuery(); });
 }
 
 function initGadget() {
   $("#stage").click(fire);
-  InputSource = function() { return $.pref("Expression"); };
-  Shape.init($("#stage"), showIt, "http://metatoys.org/alligator/egg.svg", "http://metatoys.org/alligator/open.svg");
-
-//    Shape.demo("http://metatoys.org/alligator/egg.svg", "http://metatoys.org/alligator/open.svg");
+  Shape.init($("#stage"),
+             showIt,
+             "http://metatoys.org/alligator/egg.svg",
+             "http://metatoys.org/alligator/open.svg");
+  TheCalclator = new Calculator(function() { return $.pref("Expression"); });
 }
 
 // Read from the hash bang string.
@@ -202,6 +221,7 @@ function initExp() {
   var query= getQuery();
   if (query == "") return;
   $("#exp").val(query);
+  TheCalclator = new Calculator(function() { return $("#exp").val(); });
   showIt();
 }
 
