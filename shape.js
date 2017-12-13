@@ -383,6 +383,7 @@ var Shape = {};
        var vars = findSbst(this.term[1], -1);
        var eggs = vars.map(function(each) { return func.findTerm(each); });
        $.each(eggs, function(i, egg) { egg.animateHatch(arg, field, complete); });
+       if (eggs.length === 0) { complete(); }
      },
      animateDead: function(field, complete) {
        this.children[0].animateDead(field, complete);
