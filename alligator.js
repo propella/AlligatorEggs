@@ -219,7 +219,7 @@ function initGadget() {
 // Read from the hash bang string.
 function initExp() {
   var query= getQuery();
-  if (query == "") return;
+  if (query == "") query = "(λx.x) y";
   $("#exp").val(query);
   TheCalclator = new Calculator(function() { return $("#exp").val(); });
   showIt();
