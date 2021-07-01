@@ -204,6 +204,7 @@ function initIframe() {
   $("#stage").height(query["height"]);
   $("#stage").click(fire);
   window.onhashchange = showIt;
+  if (TheCalclator) TheCalclator.stop();
   TheCalclator = new Calculator(function() { return getQuery(); });
 }
 
@@ -213,6 +214,7 @@ function initGadget() {
              showIt,
              "http://metatoys.org/alligator/egg.svg",
              "http://metatoys.org/alligator/open.svg");
+  if (TheCalclator) TheCalclator.stop();
   TheCalclator = new Calculator(function() { return $.pref("Expression"); });
 }
 
@@ -221,6 +223,7 @@ function initExp() {
   var query= getQuery();
   if (query == "") query = "(λx.x) y";
   $("#exp").val(query);
+  if (TheCalclator) TheCalclator.stop();
   TheCalclator = new Calculator(function() { return $("#exp").val(); });
   showIt();
 }
